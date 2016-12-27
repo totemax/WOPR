@@ -17,7 +17,7 @@ VAR_OUTPUT
 	 dirDestY:INTEGER; //Coordenada Y de la direccion de destino del misil
 
 END_VAR
-MapLocation dirDisparo = new MapLocation();  // direccion a la que disparamos el misil del silo
+MapLocation dirDisparo = new MapLocation();  // Instancia a la clase MapLocation()
 
 FUZZIFY numDisparosPos
  TERM numDisparos:=1; //Numero de disparos posibles del silo en este turno
