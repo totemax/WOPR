@@ -1,0 +1,78 @@
+FUNCTION_BLOCK ControlDisparoSilo
+
+VAR_INPUT
+ 
+      
+       numDisparosPos:INTEGER; //numero de disparos posibles del silo en un turno
+       distanciaObj:INTEGER;
+       poblacionDeObj:INTEGER;
+END_VAR
+
+VAR_OUTPUT
+
+	 disparoEfectuado:BOOLEAN; // TRUE, si ha efectuado disparo, FALSE, en caso contrario
+	 dirOrigenDisp:INTEGER;  // Direccion origen del disparo, es decir, la direccion en donde se encuentra el silo
+	 dirDestinoDisp:INTEGER; // Direccion destino del disparo, es decir, la direccion donde va a caer el misil
+
+END_VAR
+  
+
+FUZZIFY numDisparosPos
+ TERM Disponible:=1; //Numero de disparos posibles del silo en este turno
+ 
+ END_FUZZIFY
+
+ FUZZIFY poblacionDeObj
+  TERM Densa
+  TERM Media
+  TERM Baja
+ END_FUZZIFY
+
+ FUZZIFY distanciaObj
+  TERM Larga
+  TERM Media
+  TERM Corta
+ END_FUZZIFY
+ 
+DEFUZZIFY disparoEfectuado
+ TERM disparoRealizado:=FALSE;
+ END_DEFUZZIFY
+
+DEFUZZIFY dirOrigenDisp
+ TERM dirX
+ TERM dirY
+END_FUZZIFY
+
+DEFUZZIFY dirDestinoDisp
+ TERM dirX
+ TERM dirY
+END_FUZZIFY
+
+RULEBLOCK No1
+AND:MIN;
+ACT:PROD;
+ACCU:MAX;
+
+RULE Rule1 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Densa AND distanciaObj IS Larga then disparoEfectuado IS TRUE AND dirOrigenDisp IS [dirX,dirY] AND dirDestinoDisp IS [dirX,dirY]
+RULE Rule2 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Media AND distanciaObj IS Larga then disparoEfectuado IS TRUE AND dirOrigenDisp IS [dirX,dirY] AND dirDestinoDisp IS [dirX,dirY]
+RULE Rule3 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Baja  AND distanciaObj IS Larga then disparoEfectuado IS TRUE AND dirOrigenDisp IS [dirX,dirY] AND dirDestinoDisp IS [dirX,dirY]
+RULE Rule4 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Densa AND distanciaObj IS Media then disparoEfectuado IS TRUE AND dirOrigenDisp IS [dirX,dirY] AND dirDestinoDisp IS [dirX,dirY]
+RULE Rule5 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Media AND distanciaObj IS Media then disparoEfectuado IS TRUE AND dirOrigenDisp IS [dirX,dirY] AND dirDestinoDisp IS [dirX,dirY]
+RULE Rule6 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Baja  AND distanciaObj IS Media then disparoEfectuado IS TRUE AND dirOrigenDisp IS [dirX,dirY] AND dirDestinoDisp IS [dirX,dirY]
+RULE Rule7 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Densa AND distanciaObj IS Corta then disparoEfectuado IS TRUE AND dirOrigenDisp IS [dirX,dirY] AND dirDestinoDisp IS [dirX,dirY]
+RULE Rule8 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Media AND distanciaObj IS Corta then disparoEfectuado IS TRUE AND dirOrigenDisp IS [dirX,dirY] AND dirDestinoDisp IS [dirX,dirY] 
+RULE Rule9 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Baja  AND distanciaObj IS Corta then disparoEfectuado IS TRUE AND dirOrigenDisp IS [dirX,dirY] AND dirDestinoDisp IS [dirX,dirY]
+RULE Rule10 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Densa AND distanciaObj IS Larga then disparoEfectuado IS FALSE
+RULE Rule11 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Media AND distanciaObj IS Larga then disparoEfectuado IS FALSE
+RULE Rule12 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Baja  AND distanciaObj IS Larga then disparoEfectuado IS FALSE
+RULE Rule13 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Densa AND distanciaObj IS Media then disparoEfectuado IS FALSE
+RULE Rule14 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Media AND distanciaObj IS Media then disparoEfectuado IS FALSE
+RULE Rule15 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Baja  AND distanciaObj IS Media then disparoEfectuado IS FALSE
+RULE Rule16 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Densa AND distanciaObj IS Corta then disparoEfectuado IS FALSE
+RULE Rule17 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Media AND distanciaObj IS Corta then disparoEfectuado IS FALSE 
+RULE Rule18 :IF numDisparosPos IS Disponible AND poblacionDeObj IS Baja  AND distanciaObj IS Corta then disparoEfectuado IS FALSE
+
+
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK                
