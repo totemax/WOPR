@@ -1,41 +1,98 @@
 package game;
 
+
+
+import java.util.ArrayList;
+import java.util.List;
+
+import game.entities.City;
 import game.entities.MapLocation;
 import game.entities.PlayerMovement;
+import game.entities.Silo;
 
 public class PlayerController {
 
-	private MapLocation[] playerLocations; // Lista de las localizaciones del
-											// mapa del jugador
-
-	private MapLocation[] opponentLocations; // Lista de localizaciones del mapa
-												// del oponente.
+	private MapLocation[] playerLocations; // Mapa del jugador
+	Integer[] weights;
 
 	/**
 	 * Constructor
 	 */
-	public PlayerController(MapLocation[] playerLocations, MapLocation[] opponentLocations) {
+	public PlayerController(Integer[] weights, MapLocation[] playerLocations) {
 		this.playerLocations = playerLocations;
-		this.opponentLocations = opponentLocations;
+		this.weights = weights;
 	}
 
-	/**
-	 * Funcion de refresco de los mapas antes de cada turno
-	 * 
-	 * @param playerLocations
-	 * @param opponentLocations
-	 */
-	public void refreshMaps(MapLocation[] playerLocations, MapLocation[] opponentLocations) {
-		this.playerLocations = playerLocations;
-		this.opponentLocations = opponentLocations;
+	public MapLocation[] getPlayerLocations() {
+		return this.playerLocations;
 	}
 
-	/**
-	 * Resuelve el turno
-	 * 
-	 * @return Array de movimientos que realizará el jugador
-	 */
-	public PlayerMovement[] resolveRound() {
-		return null;
+	public void recharge(int numMissiles, MapLocation[] opponentLocations) {
+		for (MapLocation loc : this.playerLocations) {
+			if (!loc.isDestroyed() && loc.getClass().equals(Silo.class) && ((Silo) loc).getCharge(opponentLocations)) {
+				// Aqui ira el controlador borroso de carga general
+				// Lo hago aleatorio para probar
+				double rand = Math.random();
+				if (rand > 0.7)
+					((Silo) loc).recharge();
+			}
+		}
 	}
+
+	public List<PlayerMovement> resolveMovement(MapLocation[] opponentLocations) {
+		List<PlayerMovement> movements = new ArrayList<>();
+		for(MapLocation loc : this.playerLocations){
+			if (loc.getClass().equals(Silo.class)){
+				Silo siloLoc = (Silo)loc;
+				// Aqui deberÃ¡ ir el controlador borroso que seleccionara quienes disparan
+				PlayerMovement mov = siloLoc.getDisparo(opponentLocations);
+				if (mov != null){
+					double rand = Math.random();
+					if (rand > 0.8){
+						movements.add(mov);
+					}
+				}
+			}
+		}
+		return movements;
+	}
+	
+	public Integer getPopulation(){
+		Integer pop = 0;
+		for(MapLocation loc : this.getPlayerLocations()){
+			pop += loc.population;
+		}
+		return pop;
+	}
+	
+	public Integer getNumSilos(){
+		Integer silos = 0;
+		for (MapLocation loc : this.playerLocations){
+			if (loc.getClass().equals(Silo.class) && !loc.isDestroyed()){
+				silos++;
+			}
+		}
+		return silos;
+	}
+	
+	public Integer getNumMissiles(){
+		Integer missiles = 0;
+		for (MapLocation loc: this.playerLocations){
+			if (loc.getClass().equals(Silo.class)){
+				missiles += ((Silo)loc).getNumMissiles();
+			}
+		}
+		return missiles;
+	}
+	
+	public Integer getNumCities(){
+		Integer numCities = 0;
+		for (MapLocation loc : this.playerLocations){
+			if (loc.getClass().equals(City.class) && !loc.isDestroyed()){
+				numCities++;
+			}
+		}
+		return numCities;
+	}
+
 }

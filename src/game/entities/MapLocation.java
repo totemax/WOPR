@@ -1,20 +1,21 @@
 package game.entities;
 
 /**
- * Clase abstracta de cada localización del mapa del juego.
+ * Clase abstracta de cada localizacion del mapa del juego.
  */
 public abstract class MapLocation {
 
-	public Integer population; // Población actual en esta localización
-	public Boolean tainted = false; // Población contaminada
+	public Integer population; // Poblacion actual en esta localizacion
 	private Integer x; // X coords
 	private Integer y; // Y coords
-
+	protected Boolean destroyed = false; // Localizacion destruida
+	
+	
 	/**
 	 * Constructor.
 	 * 
 	 * @param population
-	 *            población inicial de esa localización.
+	 *            poblacion inicial de esa localizacion.
 	 */
 	public MapLocation(Integer population, Integer x, Integer y) {
 		this.x = x;
@@ -23,14 +24,15 @@ public abstract class MapLocation {
 	}
 
 	/**
-	 * Destrucción de la localización
+	 * Destruccion de la localizacion
 	 */
 	public void destroyLocation() {
 		this.population = 0;
+		this.destroyed = true;
 	}
 	
 	/**
-	 * Cálculo de la distancia entre dos localizaciones.
+	 * Calculo de la distancia entre dos localizaciones.
 	 * @param otherLocation la otra localizacion
 	 * @return distancia entre los dos puntos
 	 */
@@ -39,6 +41,39 @@ public abstract class MapLocation {
 		int yDist = Math.abs(this.y - otherLocation.y);
 		
 		return Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
+	}
+	
+	public double getAverageDistanceToSilos(MapLocation[] locations) {
+		double distances = 0;
+		int numSilos = 0;
+		for(MapLocation loc: locations){
+			if (loc.getClass().equals(Silo.class) && !((Silo)loc).isDestroyed()){
+				distances += this.distance(loc);			
+				numSilos++;
+			}
+		}
+		if (numSilos >0){
+			return distances / numSilos;
+		}else{
+			return Double.MAX_VALUE; // En caso de que no haya silos.
+		}
+	}
+	
+	/**
+	 * Indica si la localizacion ha sido destruida
+	 * 
+	 * @return true / false
+	 */
+	public Boolean isDestroyed() {
+		return this.destroyed;
+	}
+	
+	public int getX(){
+		return this.x;
+	}
+	
+	public int getY(){
+		return this.y;
 	}
 
 }

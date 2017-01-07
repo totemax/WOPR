@@ -5,30 +5,41 @@ package game.entities;
  */
 public class Silo extends MapLocation {
 
-	private static final Integer SILO_POPULATION = 50; // Población inicial del
-														// silo.
+	private static final Integer SILO_POPULATION = 50; // Poblacion inicial del silo.
+	private static final Integer MAX_MISSILES = 6;
 
-	private Integer missiles; // Misiles del silo
+	private Integer missiles = 0; // Misiles del silo
 
-	private Boolean destroyed = false; // Silo destruido
-
-	public Silo(Integer missiles, Integer x, Integer y) {
+	public Silo(Integer x, Integer y) {
 		super(SILO_POPULATION, x, y);
-		this.missiles = missiles;
 	}
-
-	/**
-	 * Añade un misil al silo.
-	 */
-	public void addMissile() {
-		this.missiles++;
+	
+	public boolean getCharge(MapLocation[] rivalLocations){
+		double avgDist = this.getAverageDistanceToSilos(rivalLocations);
+		// Aqui ira el controlador borroso
+		//Voy a hacer una prueba con random values
+		if (missiles < MAX_MISSILES && Math.random() > 0.5){
+			return true;
+		}
+		return false;
 	}
-
-	/**
-	 * Quita un misil del silo.
-	 */
-	public void launchMissile() {
-		this.missiles--;
+	
+	
+	public PlayerMovement getDisparo(MapLocation[] rivalLocations){
+		// Aqui ira el controlador borroso de disparo
+		if (this.missiles == 0){
+			return null;
+		}
+		
+		// Lo hago aleatorio para probar
+		for (MapLocation loc : rivalLocations){
+			double seed = Math.random();
+			if (!loc.destroyed && seed > 0.8){
+				return new PlayerMovement(this, loc);
+			}
+		}
+		
+		return null; // No se ejecuta movimiento
 	}
 
 	public void destroyLocation() {
@@ -36,13 +47,12 @@ public class Silo extends MapLocation {
 		this.missiles = 0;
 		this.destroyed = true; // Queda inutilizado
 	}
-
-	/**
-	 * Indica si el silo ha sido destruido.
-	 * 
-	 * @return true / false
-	 */
-	public Boolean isDestroyed() {
-		return this.destroyed;
+	
+	public void recharge(){
+		this.missiles++;
+	}
+	
+	public Integer getNumMissiles(){
+		return this.missiles;
 	}
 }
