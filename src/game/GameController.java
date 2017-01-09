@@ -60,16 +60,19 @@ public class GameController {
 		this.isFinished = true;
 	}
 	
+	public double getFailProb(MapLocation silo, MapLocation obj){
+		double distance = silo.distance(obj);
+		double failProb = distance * FAIL_MOD;
+		return  (failProb > MAX_FAIL_PROB) ? MAX_FAIL_PROB : failProb;
+	}
+	
 	public void resolveMovements(List<PlayerMovement> movs){
 		Random rand = new Random();
 		for(int i = 0; i < movs.size(); i++) {
-			PlayerMovement mov = movs.get(i);
-			double distance = mov.getFrom().distance(mov.getTo());
-			double failProb = distance * FAIL_MOD;
-			failProb = (failProb > MAX_FAIL_PROB) ? MAX_FAIL_PROB : failProb;
+			double failProb = this.getFailProb(movs.get(i).getFrom(), movs.get(i).getTo());
 			double num = rand.nextInt(100);
 			if (num > failProb){
-				mov.getTo().destroyLocation();
+				movs.get(i).getTo().destroyLocation();
 			}
 			movs.remove(i);
 		}
