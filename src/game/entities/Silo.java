@@ -28,37 +28,42 @@ import java.util.HashMap;
 public class Silo extends MapLocation  {
 
 
-    
-	
-	
-	private static final Integer SILO_POPULATION = 50; // Población inicial del
-														// silo.
+	private static final Integer SILO_POPULATION = 50; // Poblacion inicial del silo.
+	private static final Integer MAX_MISSILES = 6;
 
-	private Integer missiles; // Misiles del silo
+	private Integer missiles = 0; // Misiles del silo
 
-	private Boolean destroyed = false; // Silo destruido
-
-	public Silo(Integer missiles, Integer x, Integer y) {
+	public Silo(Integer x, Integer y) {
 		super(SILO_POPULATION, x, y);
-		this.missiles = missiles;
 	}
 
 
-	//functionBlock.setVariable(numMisiles.getName(), numMisiles);
-	
-	
-	/**
-	 * Añade un misil al silo.
-	 */
-	public void addMissile() {
-		this.missiles++;
+	public boolean getCharge(MapLocation[] rivalLocations){
+		double avgDist = this.getAverageDistanceToSilos(rivalLocations);
+		// Aqui ira el controlador borroso
+		//Voy a hacer una prueba con random values
+		if (missiles < MAX_MISSILES && Math.random() > 0.5){
+			return true;
+		}
+		return false;
 	}
 
-	/**
-	 * Quita un misil del silo.
-	 */
-	public void launchMissile() {
-		this.missiles--;
+
+	public PlayerMovement getDisparo(MapLocation[] rivalLocations){
+		// Aqui ira el controlador borroso de disparo
+		if (this.missiles == 0){
+			return null;
+		}
+
+		// Lo hago aleatorio para probar
+		for (MapLocation loc : rivalLocations){
+			double seed = Math.random();
+			if (!loc.destroyed && seed > 0.8){
+				return new PlayerMovement(this, loc);
+			}
+		}
+
+		return null; // No se ejecuta movimiento
 	}
 
 	public void destroyLocation() {
@@ -66,103 +71,100 @@ public class Silo extends MapLocation  {
 		this.missiles = 0;
 		this.destroyed = true; // Queda inutilizado
 	}
-	
 
-
-	/**
-	 * Indica si el silo ha sido destruido.
-	 * 
-	 * @return true / false
-	 */
-	public Boolean isDestroyed() {
-		return this.destroyed;
+	public void recharge(){
+		this.missiles++;
 	}
-	
+
+	public Integer getNumMissiles(){
+		return this.missiles;
+	}
+
 	public double CBC(){
-		
+
 		FIS fis = new FIS();
-		
+
 		// FUNCTION_BLOCK
-		
+
 		FunctionBlock functionBlock = new FunctionBlock(fis);
 		fis.addFunctionBlock("CBC",functionBlock);
-		
+
 		//Variables de entrada para el controlador borroso de carga del silo
-		
+
 	    Variable numMisiles = new Variable("numMisiles"); // numero de misiles del silo
 		Variable distanciaObj = new Variable("distanciaObj"); // distancia al objetivo
 		functionBlock.setVariable(numMisiles.getName(), numMisiles);
 		functionBlock.setVariable(distanciaObj.getName(), distanciaObj);
-		
+
 		//Variables de salida para el controlador borroso de carga del silo
-		
+
 		Variable carga = new Variable("carga"); // si se quiere cargar el silo o no
 		functionBlock.setVariable(carga.getName(), carga);
-		
+
 		/*
-		 * Miembros funcionales para la variable de entrada numMisiles(numero de misiles) 
+		 * Miembros funcionales para la variable de entrada numMisiles(numero de misiles)
 		 */
 
         MembershipFunction numMisilAlto = new MembershipFunctionSingleton(new Value(5));
-        
-      
+
+
         MembershipFunction numMisilMedio = new MembershipFunctionTriangular(new Value(2),new Value(3),new Value(4));
-        
-       
+
+
         MembershipFunction numMisilBajo = new MembershipFunctionSingleton(new Value(0), new Value(1));
-        
+
         LinguisticTerm ltmnumMisilesAlto = new LinguisticTerm("Alto", numMisilAlto);
         LinguisticTerm ltmnumMisilesMedio = new LinguisticTerm("Medio", numMisilMedio);
         LinguisticTerm ltmnumMisilesBajo = new LinguisticTerm("Bajo", numMisilBajo);
         numMisiles.add(ltmnumMisilesAlto);
         numMisiles.add(ltmnumMisilesMedio);
         numMisiles.add(ltmnumMisilesBajo);
-        
+
         /*
-        * Miembros funcionales para la variable de entrada distanciaObj(distancia al objetivo)   
+        * Miembros funcionales para la variable de entrada distanciaObj(distancia al objetivo)
         */
-        
+
         Value distLargaX[] = {new Value(50), new Value(60)};
         Value distLargaY[] = {new Value(60), new Value(70)};
         MembershipFunction dLarga = new MembershipFunctionPieceWiseLinear(distLargaX,distLargaY);
-        
+
         MembershipFunction dMedia = new MembershipFunctionTriangular( new Value(30), new Value(40), new Value(45));
-        
+
         Value distCortaX[] = {new Value(10), new Value(20)};
         Value distCortaY[] = {new Value(0), new Value(20)};
         MembershipFunction dCorta = new MembershipFunctionPieceWiseLinear(distCortaX,distCortaY);
-        
+
         LinguisticTerm ltdDistanciaObjLarga = new LinguisticTerm("Larga", dLarga);
         LinguisticTerm ltdDistanciaObjMedia = new LinguisticTerm("Media", dMedia);
         LinguisticTerm ltdDistanciaObjCorta = new LinguisticTerm("Corta", dCorta);
         distanciaObj.add(ltdDistanciaObjLarga);
         distanciaObj.add(ltdDistanciaObjMedia);
         distanciaObj.add(ltdDistanciaObjCorta);
-        
+
         /*
-         * Miembros funcionales para la variable de salida carga(si se quiere cargar el silo o no) 
+         * Miembros funcionales para la variable de salida carga(si se quiere cargar el silo o no)
          */
-        
+
         MembershipFunction cValida = new MembershipFunctionSingleton(new Value(1));
         MembershipFunction cNoValida = new MembershipFunctionSingleton(new Value(0));
-        
+
         LinguisticTerm ltcValida = new LinguisticTerm("Si",cValida);
         LinguisticTerm ltcNoValida = new LinguisticTerm("No",cNoValida);
         carga.add(ltcValida);
         carga.add(ltcNoValida);
-        
-        
-        
-        
+
+
+
+
         //Bloque de reglas
-        
+
 		RuleBlock ruleBlock = new RuleBlock(functionBlock);
 		ruleBlock.setName("Reglas de carga del silo");
 		ruleBlock.setRuleAccumulationMethod(new RuleAccumulationMethodMax());
 		ruleBlock.setRuleActivationMethod(new RuleActivationMethodMin());
-		
+
 		// IF numMisiles IS Alto AND distObj IS Larga then carga IS false
-		
+
 		Rule rule1 = new Rule("Rule1", ruleBlock);
 		RuleTerm term1rule1 = new RuleTerm(numMisiles,"Alto",false);
 		RuleTerm term2rule1 = new RuleTerm(distanciaObj,"Larga",false);
@@ -170,9 +172,9 @@ public class Silo extends MapLocation  {
 		rule1.setAntecedents(antecedenteAnd1);
 		rule1.addConsequent(carga, "No", false);
 		ruleBlock.add(rule1);
-		 
+
 		// IF numMisiles IS Alto AND distObj IS Media then carga IS false
-		
+
 		Rule rule2 = new Rule("Rule2", ruleBlock);
 		RuleTerm term1rule2 = new RuleTerm(numMisiles, "Alto",false);
 		RuleTerm term2rule2 = new RuleTerm(distanciaObj, "Media",false);
@@ -180,9 +182,9 @@ public class Silo extends MapLocation  {
 		rule2.setAntecedents(antecedenteAnd2);
 		rule2.addConsequent(carga, "No", false);
 		ruleBlock.add(rule2);
-		
+
 		// IF numMisiles IS Alto AND distObj IS Corta then carga IS true
-		
+
 		Rule rule3 = new Rule("Rule3",ruleBlock);
 		RuleTerm term1rule3 = new RuleTerm(numMisiles, "Alto",false);
 		RuleTerm term2rule3 = new RuleTerm(distanciaObj, "Corta",false);
@@ -190,9 +192,9 @@ public class Silo extends MapLocation  {
 		rule3.setAntecedents(antecedenteAnd3);
 		rule3.addConsequent(carga, "Si", false);
 		ruleBlock.add(rule3);
-		
+
 		// IF numMisiles IS Medio AND distObj IS Larga then carga IS false
-		
+
 		Rule rule4 = new Rule("Rule4",ruleBlock);
 		RuleTerm term1rule4 = new RuleTerm(numMisiles, "Medio",false);
 		RuleTerm term2rule4 = new RuleTerm(distanciaObj, "Larga",false);
@@ -200,9 +202,9 @@ public class Silo extends MapLocation  {
 		rule4.setAntecedents(antecedenteAnd4);
 		rule4.addConsequent(carga, "No", false);
 		ruleBlock.add(rule4);
-		
+
 		// IF numMisiles IS Medio AND distObj IS Media then carga IS false
-		
+
 		Rule rule5 = new Rule("Rule5",ruleBlock);
 		RuleTerm term1rule5 = new RuleTerm(numMisiles, "Medio",false);
 		RuleTerm term2rule5 = new RuleTerm(distanciaObj, "Media",false);
@@ -210,9 +212,9 @@ public class Silo extends MapLocation  {
 		rule5.setAntecedents(antecedenteAnd5);
 		rule5.addConsequent(carga, "No", false);
 		ruleBlock.add(rule5);
-		
+
 		// IF numMisiles IS Medio AND distObj IS Corta then carga IS true
-		
+
 		Rule rule6 = new Rule("Rule6",ruleBlock);
 		RuleTerm term1rule6 = new RuleTerm(numMisiles, "Medio",false);
 		RuleTerm term2rule6 = new RuleTerm(distanciaObj, "Corta",false);
@@ -220,9 +222,9 @@ public class Silo extends MapLocation  {
 		rule6.setAntecedents(antecedenteAnd6);
 		rule6.addConsequent(carga, "Si", false);
 		ruleBlock.add(rule6);
-		
+
 		// IF numMisiles IS Bajo AND distObj IS Larga then carga IS false
-		
+
 		Rule rule7 = new Rule("Rule7",ruleBlock);
 		RuleTerm term1rule7 = new RuleTerm(numMisiles, "Bajo",false);
 		RuleTerm term2rule7 = new RuleTerm(distanciaObj, "Larga",false);
@@ -230,9 +232,9 @@ public class Silo extends MapLocation  {
 		rule7.setAntecedents(antecedenteAnd7);
 		rule7.addConsequent(carga, "No", false);
 		ruleBlock.add(rule7);
-		
+
 		// IF numMisiles IS Bajo AND distObj IS Media then carga IS false
-		
+
 		Rule rule8 = new Rule("Rule8",ruleBlock);
 		RuleTerm term1rule8 = new RuleTerm(numMisiles, "Bajo",false);
 		RuleTerm term2rule8 = new RuleTerm(distanciaObj, "Media",false);
@@ -240,9 +242,9 @@ public class Silo extends MapLocation  {
 		rule8.setAntecedents(antecedenteAnd8);
 		rule8.addConsequent(carga, "No", false);
 		ruleBlock.add(rule8);
-		
+
 		// IF numMisiles IS Bajo AND distObj IS Corta then carga IS true
-		
+
 		Rule rule9 = new Rule("Rule9",ruleBlock);
 		RuleTerm term1rule9 = new RuleTerm(numMisiles, "Bajo",false);
 		RuleTerm term2rule9 = new RuleTerm(distanciaObj, "Corta",false);
@@ -250,136 +252,136 @@ public class Silo extends MapLocation  {
 		rule9.setAntecedents(antecedenteAnd9);
 		rule9.addConsequent(carga, "Si", false);
 		ruleBlock.add(rule9);
-		
+
 		HashMap<String, RuleBlock> ruleBlocksMap = new HashMap<String,RuleBlock>();
 		ruleBlocksMap.put(ruleBlock.getName(), ruleBlock);
 		functionBlock.setRuleBlocks(ruleBlocksMap);
-		
+
 		fis.getVariable("numMisiles").setValue(1);
 		fis.getVariable("distanciaObj").setValue(20);
 		fis.getVariable("carga").setValue(0);
 		fis.evaluate();
-		
-		
+
+
 		return fis.getVariable("carga").getValue();
-		
+
 	}
-	
+
 public double CBD(){
-	
+
 	FIS fis = new FIS();
-	
+
 	// FUNCTION_BLOCK
-	
+
 	FunctionBlock functionBlock = new FunctionBlock(fis);
 	fis.addFunctionBlock("CBD", functionBlock);
-	
+
 	//Variables de Entrada del Controlador Borroso de Disparo(VAR_INPUT)
-	
+
 	Variable numMisiles = new Variable("numMisiles"); // numero de misiles
 	Variable distanciaObj = new Variable("distanciaObj"); // distancia objetivo
 	Variable poblacionObj = new Variable("poblacionObj"); // poblacion objetivo
-	Variable esSilo = new Variable("esSilo"); // si el objetivo es silo o no 
+	Variable esSilo = new Variable("esSilo"); // si el objetivo es silo o no
 	functionBlock.setVariable(numMisiles.getName(), numMisiles);
 	functionBlock.setVariable(distanciaObj.getName(), distanciaObj);
 	functionBlock.setVariable(poblacionObj.getName(), poblacionObj);
 	functionBlock.setVariable(esSilo.getName(), esSilo);
-	
-	
+
+
 	//Variables de Salida del Controlador Borroso de Disparo(VAR_OUTPUT)
-	
+
 	Variable dirDisparo = new Variable("dirDisparo");
 	functionBlock.setVariable(dirDisparo.getName(), dirDisparo);
-	
+
 	/*
 	 * Miembros funcionales para la variable de entrada numMisiles(numero misiles)
 	 */
-	
+
 	MembershipFunction nMisilesAlto = new MembershipFunctionSingleton(new Value(5));
-	
+
 	MembershipFunction nMisilesMedio = new MembershipFunctionTriangular(new Value(2), new Value(3), new Value(4));
-	
+
 	MembershipFunction nMisilesBajo = new MembershipFunctionSingleton(new Value(0),new Value(1));
-	
+
 	LinguisticTerm ltnMisilesAlto = new LinguisticTerm("Alto",nMisilesAlto);
 	LinguisticTerm ltnMisilesMedio = new LinguisticTerm("Medio",nMisilesMedio);
 	LinguisticTerm ltnMisilesBajo = new LinguisticTerm("Bajo",nMisilesBajo);
 	numMisiles.add(ltnMisilesAlto);
 	numMisiles.add(ltnMisilesMedio);
 	numMisiles.add(ltnMisilesBajo);
-	
+
 	/*
 	* Miembros funcionales para la variable de entrada distanciaObj(distancia al objetivo)
 	*/
-	
+
 	Value dLargaX[] = { new Value(40) , new Value(50)};
 	Value dLargaY[] = { new Value(40) , new Value(35)};
 	MembershipFunction dLarga = new MembershipFunctionPieceWiseLinear(dLargaX, dLargaY);
-	
+
 	MembershipFunction dMedia = new MembershipFunctionTriangular(new Value(35), new Value(30), new Value(25));
-	
+
 	Value dCortaX[] = { new Value(25), new Value(20)};
 	Value dCortaY[] = { new Value(20), new Value(0)};
 	MembershipFunction dCorta = new MembershipFunctionPieceWiseLinear(dCortaX, dCortaY);
-	
+
 	LinguisticTerm ltdLarga = new LinguisticTerm("Larga",dLarga);
 	LinguisticTerm ltdMedia = new LinguisticTerm("Media",dMedia);
 	LinguisticTerm ltdCorta = new LinguisticTerm("Corta",dCorta);
 	distanciaObj.add(ltdLarga);
 	distanciaObj.add(ltdMedia);
 	distanciaObj.add(ltdCorta);
-	
+
 	/*
 	*  Miembros funcionales para la variable de entrada poblacionObj(poblacion del objetivo)
 	*/
-	
+
 	MembershipFunction pAlta = new MembershipFunctionGaussian(new Value(1500),new Value(500));
-	
+
 	MembershipFunction pMedia = new MembershipFunctionGaussian(new Value(725), new Value(173.205));
-	
+
 	MembershipFunction pBaja = new MembershipFunctionGaussian(new Value(205), new Value(146));
-	
+
 	LinguisticTerm ltpAlta = new LinguisticTerm("Alta",pAlta);
 	LinguisticTerm ltpMedia = new LinguisticTerm("Media",pMedia);
 	LinguisticTerm ltpBaja = new LinguisticTerm("Baja",pBaja);
 	poblacionObj.add(ltpAlta);
 	poblacionObj.add(ltpMedia);
 	poblacionObj.add(ltpBaja);
-	
+
 	/*
 	* Miembros funcionales para la variable de entrada esSilo(si el objetivo es silo o no)
 	*/
-	
+
 	MembershipFunction siloV = new MembershipFunctionSingleton(new Value(1));
-	
+
 	MembershipFunction siloNV = new MembershipFunctionSingleton(new Value(0));
-	
+
 	LinguisticTerm ltsV = new LinguisticTerm("Es silo",siloV);
 	LinguisticTerm ltsNV = new LinguisticTerm("No es silo",siloNV);
 	esSilo.add(ltsV);
 	esSilo.add(ltsNV);
-	
+
 	/*
 	 * Miembros funcionales para la variable de salida dirDisparo(direccion del disparo)
 	 */
-	
+
 	MembershipFunction dDisp = new MembershipFunctionSingleton(new Value(50), new Value(60));
-	
+
 	LinguisticTerm ltdDisp = new LinguisticTerm("Direccion disparo",dDisp);
 	dirDisparo.add(ltdDisp);
-	
-	
-	
+
+
+
     //Bloque de reglas
-    
+
 	RuleBlock ruleBlock = new RuleBlock(functionBlock);
 	ruleBlock.setName("Reglas de disparo del silo");
 	ruleBlock.setRuleAccumulationMethod(new RuleAccumulationMethodMax());
 	ruleBlock.setRuleActivationMethod(new RuleActivationMethodMin());
-	
-	
+
+
 	// IF numMisiles IS Alto AND distanciaObj IS Alta AND poblacionObj IS Alta AND esSilo IS No THEN dirDisparo IS Direccion de disparo
-	
+
 	Rule rule1 = new Rule("Rule1",ruleBlock);
 	RuleTerm term1rule1 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule1 = new RuleTerm(distanciaObj, "Alta",false);
@@ -391,9 +393,9 @@ public double CBD(){
 	rule1.setAntecedents(antecedenteAnd13);
 	rule1.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule1);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Alta AND poblacionObj IS Media AND esSilo IS No THEN dirDisparo IS Direccion de disparo
-	
+
 	Rule rule2 = new Rule("Rule2",ruleBlock);
 	RuleTerm term1rule2 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule2 = new RuleTerm(distanciaObj, "Alta",false);
@@ -405,10 +407,10 @@ public double CBD(){
 	rule2.setAntecedents(antecedenteAnd23);
 	rule2.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule2);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Alta AND poblacionObj IS Baja AND esSilo IS No THEN dirDisparo IS Direccion de disparo
-	
-	
+
+
 	Rule rule3 = new Rule("Rule3",ruleBlock);
 	RuleTerm term1rule3 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule3 = new RuleTerm(distanciaObj, "Alta",false);
@@ -420,7 +422,7 @@ public double CBD(){
 	rule3.setAntecedents(antecedenteAnd33);
 	rule3.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule3);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Alta AND poblacionObj IS Alta AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
 	Rule rule4 = new Rule("Rule4",ruleBlock);
@@ -434,10 +436,10 @@ public double CBD(){
 	rule4.setAntecedents(antecedenteAnd43);
 	rule4.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule4);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Alta AND poblacionObj IS Media AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule5 = new Rule("Rule5",ruleBlock);
 	RuleTerm term1rule5 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule5 = new RuleTerm(distanciaObj, "Alta",false);
@@ -449,10 +451,10 @@ public double CBD(){
 	rule5.setAntecedents(antecedenteAnd53);
 	rule5.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule5);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Alta AND poblacionObj IS Baja AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule6 = new Rule("Rule6",ruleBlock);
 	RuleTerm term1rule6 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule6 = new RuleTerm(distanciaObj, "Alta",false);
@@ -464,10 +466,10 @@ public double CBD(){
 	rule6.setAntecedents(antecedenteAnd63);
 	rule6.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule6);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Media AND poblacionObj IS Alta AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule7 = new Rule("Rule7",ruleBlock);
 	RuleTerm term1rule7 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule7 = new RuleTerm(distanciaObj, "Media",false);
@@ -479,10 +481,10 @@ public double CBD(){
 	rule7.setAntecedents(antecedenteAnd73);
 	rule7.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule7);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Media AND poblacionObj IS Media AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule8 = new Rule("Rule8",ruleBlock);
 	RuleTerm term1rule8 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule8 = new RuleTerm(distanciaObj, "Media",false);
@@ -494,10 +496,10 @@ public double CBD(){
 	rule8.setAntecedents(antecedenteAnd83);
 	rule8.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule8);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Media AND poblacionObj IS Baja AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule9 = new Rule("Rule9",ruleBlock);
 	RuleTerm term1rule9 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule9 = new RuleTerm(distanciaObj, "Media",false);
@@ -509,10 +511,10 @@ public double CBD(){
 	rule9.setAntecedents(antecedenteAnd93);
 	rule9.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule9);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Media AND poblacionObj IS Alta AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule10 = new Rule("Rule10",ruleBlock);
 	RuleTerm term1rule10 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule10 = new RuleTerm(distanciaObj, "Media",false);
@@ -524,10 +526,10 @@ public double CBD(){
 	rule10.setAntecedents(antecedenteAnd103);
 	rule10.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule10);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Media AND poblacionObj IS Media AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule11 = new Rule("Rule11",ruleBlock);
 	RuleTerm term1rule11 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule11 = new RuleTerm(distanciaObj, "Media",false);
@@ -539,10 +541,10 @@ public double CBD(){
 	rule11.setAntecedents(antecedenteAnd113);
 	rule11.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule11);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Media AND poblacionObj IS Baja AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule12 = new Rule("Rule12",ruleBlock);
 	RuleTerm term1rule12 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule12 = new RuleTerm(distanciaObj, "Media",false);
@@ -554,9 +556,9 @@ public double CBD(){
 	rule12.setAntecedents(antecedenteAnd123);
 	rule12.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule12);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Baja AND poblacionObj IS Alta AND esSilo IS No THEN dirDisparo IS Direccion de disparo
-	
+
 	Rule rule13 = new Rule("Rule13",ruleBlock);
 	RuleTerm term1rule13 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule13 = new RuleTerm(distanciaObj, "Baja",false);
@@ -568,10 +570,10 @@ public double CBD(){
 	rule13.setAntecedents(antecedenteAnd133);
 	rule13.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule13);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Baja AND poblacionObj IS Media AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule14 = new Rule("Rule14",ruleBlock);
 	RuleTerm term1rule14 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule14 = new RuleTerm(distanciaObj, "Baja",false);
@@ -583,10 +585,10 @@ public double CBD(){
 	rule14.setAntecedents(antecedenteAnd143);
 	rule14.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule14);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Baja AND poblacionObj IS Baja AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule15 = new Rule("Rule15",ruleBlock);
 	RuleTerm term1rule15 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule15 = new RuleTerm(distanciaObj, "Baja",false);
@@ -598,10 +600,10 @@ public double CBD(){
 	rule15.setAntecedents(antecedenteAnd153);
 	rule15.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule15);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Baja AND poblacionObj IS Alta AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule16 = new Rule("Rule16",ruleBlock);
 	RuleTerm term1rule16 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule16 = new RuleTerm(distanciaObj, "Baja",false);
@@ -613,10 +615,10 @@ public double CBD(){
 	rule16.setAntecedents(antecedenteAnd163);
 	rule16.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule16);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Baja AND poblacionObj IS Media AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule17 = new Rule("Rule17",ruleBlock);
 	RuleTerm term1rule17 = new RuleTerm(numMisiles, "Alto",false);
 	RuleTerm term2rule17 = new RuleTerm(distanciaObj, "Baja",false);
@@ -628,7 +630,7 @@ public double CBD(){
 	rule17.setAntecedents(antecedenteAnd173);
 	rule17.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule17);
-	
+
 	// IF numMisiles IS Alto AND distanciaObj IS Baja AND poblacionObj IS Baja AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
 	Rule rule18 = new Rule("Rule18",ruleBlock);
@@ -642,10 +644,10 @@ public double CBD(){
 	rule18.setAntecedents(antecedenteAnd183);
 	rule18.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule18);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Alta AND poblacionObj IS Alta AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule19 = new Rule("Rule19",ruleBlock);
 	RuleTerm term1rule19 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule19 = new RuleTerm(distanciaObj, "Alta",false);
@@ -657,11 +659,11 @@ public double CBD(){
 	rule19.setAntecedents(antecedenteAnd193);
 	rule19.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule19);
-	
-	
+
+
 	// IF numMisiles IS Medio AND distanciaObj IS Alta AND poblacionObj IS Media AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule20 = new Rule("Rule20",ruleBlock);
 	RuleTerm term1rule20 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule20 = new RuleTerm(distanciaObj, "Alta",false);
@@ -673,10 +675,10 @@ public double CBD(){
 	rule20.setAntecedents(antecedenteAnd203);
 	rule20.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule20);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Alta AND poblacionObj IS Baja AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule21 = new Rule("Rule21",ruleBlock);
 	RuleTerm term1rule21 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule21 = new RuleTerm(distanciaObj, "Alta",false);
@@ -688,10 +690,10 @@ public double CBD(){
 	rule21.setAntecedents(antecedenteAnd213);
 	rule21.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule21);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Alta AND poblacionObj IS Alta AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule22 = new Rule("Rule22",ruleBlock);
 	RuleTerm term1rule22 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule22 = new RuleTerm(distanciaObj, "Alta",false);
@@ -703,9 +705,9 @@ public double CBD(){
 	rule22.setAntecedents(antecedenteAnd223);
 	rule22.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule22);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Alta AND poblacionObj IS Media AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
-	
+
 	Rule rule23 = new Rule("Rule23",ruleBlock);
 	RuleTerm term1rule23 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule23 = new RuleTerm(distanciaObj, "Alta",false);
@@ -717,10 +719,10 @@ public double CBD(){
 	rule23.setAntecedents(antecedenteAnd233);
 	rule23.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule23);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Alta AND poblacionObj IS Baja AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule24 = new Rule("Rule24",ruleBlock);
 	RuleTerm term1rule24 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule24 = new RuleTerm(distanciaObj, "Alta",false);
@@ -732,10 +734,10 @@ public double CBD(){
 	rule24.setAntecedents(antecedenteAnd243);
 	rule24.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule24);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Media AND poblacionObj IS Alta AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule25 = new Rule("Rule25",ruleBlock);
 	RuleTerm term1rule25 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule25 = new RuleTerm(distanciaObj, "Media",false);
@@ -747,10 +749,10 @@ public double CBD(){
 	rule25.setAntecedents(antecedenteAnd253);
 	rule25.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule25);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Media AND poblacionObj IS Media AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule26 = new Rule("Rule26",ruleBlock);
 	RuleTerm term1rule26 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule26 = new RuleTerm(distanciaObj, "Media",false);
@@ -762,7 +764,7 @@ public double CBD(){
 	rule26.setAntecedents(antecedenteAnd263);
 	rule26.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule26);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Media AND poblacionObj IS Baja AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
 	Rule rule27 = new Rule("Rule27",ruleBlock);
@@ -776,10 +778,10 @@ public double CBD(){
 	rule27.setAntecedents(antecedenteAnd273);
 	rule27.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule27);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Media AND poblacionObj IS Alta AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule28 = new Rule("Rule28",ruleBlock);
 	RuleTerm term1rule28 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule28 = new RuleTerm(distanciaObj, "Media",false);
@@ -791,10 +793,10 @@ public double CBD(){
 	rule28.setAntecedents(antecedenteAnd283);
 	rule28.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule28);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Media AND poblacionObj IS Media AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule29 = new Rule("Rule29",ruleBlock);
 	RuleTerm term1rule29 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule29 = new RuleTerm(distanciaObj, "Media",false);
@@ -806,10 +808,10 @@ public double CBD(){
 	rule29.setAntecedents(antecedenteAnd293);
 	rule29.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule29);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Media AND poblacionObj IS Baja AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule30 = new Rule("Rule30",ruleBlock);
 	RuleTerm term1rule30 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule30 = new RuleTerm(distanciaObj, "Media",false);
@@ -821,10 +823,10 @@ public double CBD(){
 	rule30.setAntecedents(antecedenteAnd303);
 	rule30.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule30);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Baja AND poblacionObj IS Alta AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule31 = new Rule("Rule31",ruleBlock);
 	RuleTerm term1rule31 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule31 = new RuleTerm(distanciaObj, "Baja",false);
@@ -836,10 +838,10 @@ public double CBD(){
 	rule31.setAntecedents(antecedenteAnd313);
 	rule31.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule31);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Baja AND poblacionObj IS Media AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule32 = new Rule("Rule32",ruleBlock);
 	RuleTerm term1rule32 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule32 = new RuleTerm(distanciaObj, "Baja",false);
@@ -851,10 +853,10 @@ public double CBD(){
 	rule32.setAntecedents(antecedenteAnd323);
 	rule32.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule32);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Baja AND poblacionObj IS Baja AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule33 = new Rule("Rule33",ruleBlock);
 	RuleTerm term1rule33 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule33 = new RuleTerm(distanciaObj, "Baja",false);
@@ -866,10 +868,10 @@ public double CBD(){
 	rule33.setAntecedents(antecedenteAnd333);
 	rule33.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule33);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Baja AND poblacionObj IS Alta AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule34 = new Rule("Rule34",ruleBlock);
 	RuleTerm term1rule34 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule34 = new RuleTerm(distanciaObj, "Baja",false);
@@ -881,10 +883,10 @@ public double CBD(){
 	rule34.setAntecedents(antecedenteAnd343);
 	rule34.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule34);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Baja AND poblacionObj IS Media AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule35 = new Rule("Rule35",ruleBlock);
 	RuleTerm term1rule35 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule35 = new RuleTerm(distanciaObj, "Baja",false);
@@ -896,10 +898,10 @@ public double CBD(){
 	rule35.setAntecedents(antecedenteAnd353);
 	rule35.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule35);
-	
+
 	// IF numMisiles IS Medio AND distanciaObj IS Baja AND poblacionObj IS Baja AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule36 = new Rule("Rule36",ruleBlock);
 	RuleTerm term1rule36 = new RuleTerm(numMisiles, "Medio",false);
 	RuleTerm term2rule36 = new RuleTerm(distanciaObj, "Baja",false);
@@ -911,10 +913,10 @@ public double CBD(){
 	rule36.setAntecedents(antecedenteAnd363);
 	rule36.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule36);
-    
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Alta AND poblacionObj IS Alta AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule37 = new Rule("Rule37",ruleBlock);
 	RuleTerm term1rule37 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule37 = new RuleTerm(distanciaObj, "Alta",false);
@@ -929,7 +931,7 @@ public double CBD(){
 
 	// IF numMisiles IS Bajo AND distanciaObj IS Alta AND poblacionObj IS Media AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule38 = new Rule("Rule38",ruleBlock);
 	RuleTerm term1rule38 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule38 = new RuleTerm(distanciaObj, "Alta",false);
@@ -941,10 +943,10 @@ public double CBD(){
 	rule38.setAntecedents(antecedenteAnd383);
 	rule38.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule38);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Alta AND poblacionObj IS Baja AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule39 = new Rule("Rule39",ruleBlock);
 	RuleTerm term1rule39 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule39 = new RuleTerm(distanciaObj, "Alta",false);
@@ -956,7 +958,7 @@ public double CBD(){
 	rule39.setAntecedents(antecedenteAnd393);
 	rule39.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule39);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Alta AND poblacionObj IS Alta AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
 	Rule rule40 = new Rule("Rule40",ruleBlock);
@@ -970,10 +972,10 @@ public double CBD(){
 	rule40.setAntecedents(antecedenteAnd403);
 	rule40.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule40);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Alta AND poblacionObj IS Media AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule41 = new Rule("Rule41",ruleBlock);
 	RuleTerm term1rule41 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule41 = new RuleTerm(distanciaObj, "Alta",false);
@@ -985,7 +987,7 @@ public double CBD(){
 	rule41.setAntecedents(antecedenteAnd413);
 	rule41.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule41);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Alta AND poblacionObj IS Baja AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
 	Rule rule42 = new Rule("Rule42",ruleBlock);
@@ -999,10 +1001,10 @@ public double CBD(){
 	rule42.setAntecedents(antecedenteAnd423);
 	rule42.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule42);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Media AND poblacionObj IS Alta AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule43 = new Rule("Rule43",ruleBlock);
 	RuleTerm term1rule43 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule43 = new RuleTerm(distanciaObj, "Media",false);
@@ -1014,10 +1016,10 @@ public double CBD(){
 	rule43.setAntecedents(antecedenteAnd433);
 	rule43.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule43);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Media AND poblacionObj IS Media AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule44 = new Rule("Rule44",ruleBlock);
 	RuleTerm term1rule44 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule44 = new RuleTerm(distanciaObj, "Media",false);
@@ -1029,10 +1031,10 @@ public double CBD(){
 	rule44.setAntecedents(antecedenteAnd443);
 	rule44.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule44);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Media AND poblacionObj IS Baja AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule45 = new Rule("Rule45",ruleBlock);
 	RuleTerm term1rule45 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule45 = new RuleTerm(distanciaObj, "Media",false);
@@ -1044,10 +1046,10 @@ public double CBD(){
 	rule45.setAntecedents(antecedenteAnd453);
 	rule45.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule45);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Media AND poblacionObj IS Alta AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule46 = new Rule("Rule46",ruleBlock);
 	RuleTerm term1rule46 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule46 = new RuleTerm(distanciaObj, "Media",false);
@@ -1059,10 +1061,10 @@ public double CBD(){
 	rule46.setAntecedents(antecedenteAnd463);
 	rule46.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule46);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Media AND poblacionObj IS Media AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule47 = new Rule("Rule47",ruleBlock);
 	RuleTerm term1rule47 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule47 = new RuleTerm(distanciaObj, "Media",false);
@@ -1074,10 +1076,10 @@ public double CBD(){
 	rule47.setAntecedents(antecedenteAnd473);
 	rule47.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule47);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Media AND poblacionObj IS Baja AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule48 = new Rule("Rule48",ruleBlock);
 	RuleTerm term1rule48 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule48 = new RuleTerm(distanciaObj, "Media",false);
@@ -1089,10 +1091,10 @@ public double CBD(){
 	rule48.setAntecedents(antecedenteAnd483);
 	rule48.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule48);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Baja AND poblacionObj IS Alta AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule49 = new Rule("Rule49",ruleBlock);
 	RuleTerm term1rule49 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule49 = new RuleTerm(distanciaObj, "Baja",false);
@@ -1107,7 +1109,7 @@ public double CBD(){
 
 	// IF numMisiles IS Bajo AND distanciaObj IS Baja AND poblacionObj IS Media AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule50 = new Rule("Rule50",ruleBlock);
 	RuleTerm term1rule50 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule50 = new RuleTerm(distanciaObj, "Baja",false);
@@ -1119,10 +1121,10 @@ public double CBD(){
 	rule50.setAntecedents(antecedenteAnd503);
 	rule50.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule50);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Baja AND poblacionObj IS Baja AND esSilo IS No THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule51 = new Rule("Rule51",ruleBlock);
 	RuleTerm term1rule51 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule51 = new RuleTerm(distanciaObj, "Baja",false);
@@ -1134,10 +1136,10 @@ public double CBD(){
 	rule51.setAntecedents(antecedenteAnd513);
 	rule51.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule51);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Baja AND poblacionObj IS Alta AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule52 = new Rule("Rule52",ruleBlock);
 	RuleTerm term1rule52 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule52 = new RuleTerm(distanciaObj, "Baja",false);
@@ -1149,10 +1151,10 @@ public double CBD(){
 	rule52.setAntecedents(antecedenteAnd523);
 	rule52.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule52);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Baja AND poblacionObj IS Media AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule53 = new Rule("Rule53",ruleBlock);
 	RuleTerm term1rule53 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule53 = new RuleTerm(distanciaObj, "Baja",false);
@@ -1164,10 +1166,10 @@ public double CBD(){
 	rule53.setAntecedents(antecedenteAnd533);
 	rule53.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule53);
-	
+
 	// IF numMisiles IS Bajo AND distanciaObj IS Baja AND poblacionObj IS Baja AND esSilo IS Si THEN dirDisparo IS Direccion de disparo
 
-	
+
 	Rule rule54 = new Rule("Rule54",ruleBlock);
 	RuleTerm term1rule54 = new RuleTerm(numMisiles, "Bajo",false);
 	RuleTerm term2rule54 = new RuleTerm(distanciaObj, "Baja",false);
@@ -1179,25 +1181,25 @@ public double CBD(){
 	rule54.setAntecedents(antecedenteAnd543);
 	rule54.addConsequent(dirDisparo, "Direccion disparo", false);
 	ruleBlock.add(rule54);
-	
-	
+
+
 	HashMap<String, RuleBlock> ruleBlocksMap = new HashMap<String,RuleBlock>();
 	ruleBlocksMap.put(ruleBlock.getName(), ruleBlock);
 	functionBlock.setRuleBlocks(ruleBlocksMap);
-	
+
 	fis.getVariable("numMisiles").setValue(1);
 	fis.getVariable("distanciaObj").setValue(20);
 	fis.getVariable("poblacionObj").setValue(1000);
 	fis.getVariable("esSilo").setValue(0);
 	fis.getVariable("dirDisparo").setValue(50);
 	fis.evaluate();
-	
-	
+
+
 	return fis.getVariable("dirDisparo").getValue();
 
-	
-	
-	
-}	
+
+
+
+}
 
 }
