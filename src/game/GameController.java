@@ -10,8 +10,31 @@ import game.entities.MapLocation;
 import game.entities.PlayerMovement;
 import game.entities.Silo;
 
-public class GameController {
-
+import net.sourceforge.jFuzzyLogic.FIS;
+import net.sourceforge.jFuzzyLogic.FunctionBlock;
+import net.sourceforge.jFuzzyLogic.defuzzifier.DefuzzifierCenterOfGravity;
+import net.sourceforge.jFuzzyLogic.membership.MembershipFunction;
+import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionGaussian;
+import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionPieceWiseLinear;
+import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionSingleton;
+import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionTrapetzoidal;
+import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionTriangular;
+import net.sourceforge.jFuzzyLogic.membership.Value;
+import net.sourceforge.jFuzzyLogic.plot.JDialogFis;
+import net.sourceforge.jFuzzyLogic.plot.JFuzzyChart;
+import net.sourceforge.jFuzzyLogic.rule.LinguisticTerm;
+import net.sourceforge.jFuzzyLogic.rule.Rule;
+import net.sourceforge.jFuzzyLogic.rule.RuleBlock;
+import net.sourceforge.jFuzzyLogic.rule.RuleExpression;
+import net.sourceforge.jFuzzyLogic.rule.RuleTerm;
+import net.sourceforge.jFuzzyLogic.rule.Variable;
+import net.sourceforge.jFuzzyLogic.ruleAccumulationMethod.RuleAccumulationMethodMax;
+import net.sourceforge.jFuzzyLogic.ruleActivationMethod.RuleActivationMethodMin;
+import net.sourceforge.jFuzzyLogic.ruleConnectionMethod.RuleConnectionMethodAndMin;
+import net.sourceforge.jFuzzyLogic.ruleConnectionMethod.RuleConnectionMethodOrMax;
+import java.util.HashMap;
+public class GameController{
+	
 	private static final Integer NUM_ROUNDS = 6; // Numero de turnos por
 													// partida.
 	private static final Integer NUM_SILOS = 6; // Numero de silos por jugador.
@@ -34,7 +57,7 @@ public class GameController {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * En este constructor se deberan incorporar los descriptores de cada
 	 * jugador.
 	 */
@@ -59,13 +82,13 @@ public class GameController {
 		}
 		this.isFinished = true;
 	}
-	
+
 	public double getFailProb(MapLocation silo, MapLocation obj){
 		double distance = silo.distance(obj);
 		double failProb = distance * FAIL_MOD;
 		return  (failProb > MAX_FAIL_PROB) ? MAX_FAIL_PROB : failProb;
 	}
-	
+
 	public void resolveMovements(List<PlayerMovement> movs){
 		Random rand = new Random();
 		for(int i = 0; i < movs.size(); i++) {
@@ -80,7 +103,7 @@ public class GameController {
 
 	/**
 	 * Metodo que se encargara de devolver los resultados del juego.
-	 * 
+	 *
 	 * @return Integer (por poner algo) en un futuro se podra poner una relacion
 	 *         descriptor - puntuacion
 	 */
@@ -92,7 +115,7 @@ public class GameController {
 		totalScore += this.player1.getNumCities();
 		return totalScore;
 	}
-	
+
 	public Integer player2Result() {
 		Integer totalScore = 0;
 		totalScore += this.player2.getPopulation() / 100;

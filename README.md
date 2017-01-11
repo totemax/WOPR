@@ -8,7 +8,7 @@
 - Jesús Jorge (@totemax)
 
 ## Summary
-Desarrollo de simulador de guerra nuclear con aprendizaje para la asignatura de Sistemas Inteligentes.
+Desarrollo de juego de guerra nuclear con aprendizaje para la asignatura de Sistemas Inteligentes.
 
 El proyecto esta basado en el enfrentamiento de dos jugadores (Sistemas inteligentes) y en el aprendizaje de estos mediante un algoritmo genético.
 Los controles de las distintas partes del sistema inteligente se realizarán mediante Controladores Borrosos haciendo uso de la librería JFuzzyLogic.

@@ -1,0 +1,42 @@
+FUNCTION_BLOCK ControlRecargarSilo
+
+VAR_INPUT
+
+    municion:INTEGER; //municion disponible en el silo
+    capacidad:INTEGER; // Capacidad de almacenamiento del silo
+    recargaMisil:INTEGER;
+
+END_INPUT
+
+VAR_OUTPUT
+
+    numMisiles:INTEGER; //numero de misiles que tiene el silo
+
+END_OUTPUT
+
+FUZZIFY municion
+ TERM numMisilesDisp; //número de misiles disponibles en el silo
+END_FUZZIFY
+
+FUZZIFY capacidad
+ TERM maxCapacidadSilo:=5; //Capacidad máxima del silo
+ TERM minCapacidadSilo:=-1; // Capacidad mínima del silo
+END_FUZZIFY
+
+DEFUZZIFY numMisiles
+ TERM numM;
+END_DEFUZZIFY
+Silo misil = new Silo();
+
+RULEBLOCK No1
+AND:MIN;
+ACT:PROD;
+ACCU:MAX;
+
+RULE Rule1 :IF municion < maxCapacidadSilo AND municion > minCapacidadSilo then 
+						municion++;
+                        misil.addMissile;
+						numMisilesDisp:=municion;
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
