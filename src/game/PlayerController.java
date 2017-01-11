@@ -461,7 +461,25 @@ public class PlayerController {
 	   rule10.setAntecedents(antecedenteAnd107);
 	   rule10.addConsequent(efectuarDisp, "Si", false);
 	   ruleBlock.add(rule10);
-	   return 0;
+
+	   		HashMap<String, RuleBlock> ruleBlocksMap = new HashMap<String,RuleBlock>();
+		ruleBlocksMap.put(ruleBlock.getName(), ruleBlock);
+		functionBlock.setRuleBlocks(ruleBlocksMap);
+		
+		fis.getVariable("numMisiles").setValue(1);
+		fis.getVariable("bajoAtaque").setValue(0);
+		fis.getVariable("miPoblacion").setValue(1000);
+		fis.getVariable("poblacionObj").setValue(1000);
+		fis.getVariable("numSilosObj").setValue(4);
+		fis.getVariable("miNumSilos").setValue(4);
+		fis.getVariable("dirDisparo").setValue(50);
+		fis.getVariable("probFallo").setValue(20);
+		fis.getVariable("efectuarDisp").setValue(1);
+		fis.evaluate();
+	   
+	   
+	   return fis.getVariable("efectuarDisp").getValue();
+	   
 	 }
 
 }
