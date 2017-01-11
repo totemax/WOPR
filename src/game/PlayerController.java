@@ -9,6 +9,23 @@ import game.entities.City;
 import game.entities.MapLocation;
 import game.entities.PlayerMovement;
 import game.entities.Silo;
+import net.sourceforge.jFuzzyLogic.FIS;
+import net.sourceforge.jFuzzyLogic.FunctionBlock;
+import net.sourceforge.jFuzzyLogic.membership.MembershipFunction;
+import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionGaussian;
+import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionSingleton;
+import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionTrapetzoidal;
+import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionTriangular;
+import net.sourceforge.jFuzzyLogic.membership.Value;
+import net.sourceforge.jFuzzyLogic.rule.LinguisticTerm;
+import net.sourceforge.jFuzzyLogic.rule.Rule;
+import net.sourceforge.jFuzzyLogic.rule.RuleBlock;
+import net.sourceforge.jFuzzyLogic.rule.RuleExpression;
+import net.sourceforge.jFuzzyLogic.rule.RuleTerm;
+import net.sourceforge.jFuzzyLogic.rule.Variable;
+import net.sourceforge.jFuzzyLogic.ruleAccumulationMethod.RuleAccumulationMethodMax;
+import net.sourceforge.jFuzzyLogic.ruleActivationMethod.RuleActivationMethodMin;
+import net.sourceforge.jFuzzyLogic.ruleConnectionMethod.RuleConnectionMethodAndMin;
 
 public class PlayerController {
 
