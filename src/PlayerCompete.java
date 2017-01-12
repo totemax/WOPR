@@ -35,7 +35,7 @@ public class PlayerCompete extends Problem implements GroupedProblemForm{
         FloatVectorIndividual player2;
         
         player1 = (FloatVectorIndividual)ind[0];
-        player2 = (FloatVectorIndividual)ind[0];
+        player2 = (FloatVectorIndividual)ind[1];
 
         GameController PlayerFitness = new GameController(player1.genome, player2.genome);
         
@@ -46,26 +46,20 @@ public class PlayerCompete extends Problem implements GroupedProblemForm{
         score2 = PlayerFitness.player2Result();
         System.out.println("Score2:"+score2);
         
-        double score;
-                        
-        if(score1 >= score2)
-        	score=score1;
-        else
-        	score=score2;
         
         //decimos al juego quien ha ganado
         if( updateFitness[0] )
         {
         SimpleFitness fit = ((SimpleFitness)(ind[0].fitness));
-        fit.trials.add(new Double(score));
-        fit.setFitness(state, score, false);
+        fit.trials.add(new Double(score1));
+        fit.setFitness(state, score1, false);
         }
 
         if( updateFitness[1] )
         {
         SimpleFitness fit = ((SimpleFitness)(ind[1].fitness));
-        fit.trials.add(new Double(score));
-        fit.setFitness(state,  score, false);
+        fit.trials.add(new Double(score2));
+        fit.setFitness(state,  score2, false);
         } 
         System.out.println("Trial Fitness updated");
         
