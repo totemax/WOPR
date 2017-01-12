@@ -48,7 +48,10 @@ public class PlayerCompete extends Problem implements GroupedProblemForm{
         
         double score;
                         
-        score = score1 - score2;
+        if(score1 > score2)
+        	score=score1;
+        else
+        	score=score2;
         
         //decimos al juego quien ha ganado
         if( updateFitness[0] )
@@ -62,7 +65,7 @@ public class PlayerCompete extends Problem implements GroupedProblemForm{
         {
         SimpleFitness fit = ((SimpleFitness)(ind[1].fitness));
         fit.trials.add(new Double(score));
-        fit.setFitness(state, - score, false);
+        fit.setFitness(state,  score, false);
         } 
         System.out.println("Trial Fitness updated");
         
