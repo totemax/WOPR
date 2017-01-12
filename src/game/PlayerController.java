@@ -3,6 +3,7 @@ package game;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import game.entities.City;
@@ -13,6 +14,7 @@ import net.sourceforge.jFuzzyLogic.FIS;
 import net.sourceforge.jFuzzyLogic.FunctionBlock;
 import net.sourceforge.jFuzzyLogic.membership.MembershipFunction;
 import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionGaussian;
+import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionPieceWiseLinear;
 import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionSingleton;
 import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionTrapetzoidal;
 import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionTriangular;
@@ -30,14 +32,14 @@ import net.sourceforge.jFuzzyLogic.ruleConnectionMethod.RuleConnectionMethodAndM
 public class PlayerController {
 
 	private MapLocation[] playerLocations; // Mapa del jugador
-	double[] weights;
+	float[] weights;
 
 	/**
 	 * Constructor
 	 */
-	public PlayerController(double[] weights, MapLocation[] playerLocations) {
+	public PlayerController(float[] genome2, MapLocation[] playerLocations) {
 		this.playerLocations = playerLocations;
-		this.weights = weights;
+		this.weights = genome2;
 	}
 
 	public MapLocation[] getPlayerLocations() {

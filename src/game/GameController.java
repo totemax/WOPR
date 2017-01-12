@@ -32,7 +32,8 @@ public class GameController{
 	PlayerController player1, player2;
 	List<PlayerMovement> player1Movements = new ArrayList<>();
 	List<PlayerMovement> player2Movements = new ArrayList<>();
-	double[] player1Weights, player2Weights;
+	float[] player1Weights;
+	float[] player2Weights;
 
 	/**
 	 * Constructor.
@@ -40,13 +41,13 @@ public class GameController{
 	 * En este constructor se deberan incorporar los descriptores de cada
 	 * jugador.
 	 */
-	public GameController(double[] player1Weights, double[] player2Weights) {
-		this.player1Weights = player1Weights;
-		this.player2Weights = player2Weights;
+	public GameController(float[] genome, float[] genome2) {
+		this.player1Weights = genome;
+		this.player2Weights = genome2;
 		MapLocation[] player1Map = this.generateMap();
 		MapLocation[] player2Map = this.reflectMap(player1Map);
-		this.player1 = new PlayerController(player1Weights, player1Map);
-		this.player2 = new PlayerController(player2Weights, player2Map);
+		this.player1 = new PlayerController(genome, player1Map);
+		this.player2 = new PlayerController(genome2, player2Map);
 	}
 
 	/**
