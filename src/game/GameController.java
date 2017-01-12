@@ -17,10 +17,12 @@ public class GameController{
 	private static final Integer NUM_SILOS = 6; // Numero de silos por jugador.
 	private static final Integer NUM_CITIES = 6; // Numero de ciudades por
 													// jugador.
-	private static final Integer MAP_WIDTH = 6; // Ancho del mapa por cada
+	public static final Integer MAP_WIDTH = 6; // Ancho del mapa por cada
 												// jugador.
-	private static final Integer MAP_HEIGHT = 6; // Altura del mapa por cada
+	public static final Integer MAP_HEIGHT = 6; // Altura del mapa por cada
 													// jugador.
+	
+	public static final double MAX_DISTANCE = Math.sqrt(Math.pow((MAP_WIDTH * 2), 2) + Math.pow((MAP_HEIGHT * 2), 2));
 
 	private static final Integer INITIAL_MISSILES = (MAP_WIDTH * MAP_HEIGHT) / 10;
 	private static final Integer MISSILE_PER_ROUND = 3;

@@ -77,7 +77,7 @@ public class PlayerController {
 	public Integer getPopulation(){
 		Integer pop = 0;
 		for(MapLocation loc : this.getPlayerLocations()){
-			pop += loc.population;
+			pop += loc.getPopulation();
 		}
 		return pop;
 	}

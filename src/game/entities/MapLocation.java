@@ -5,7 +5,7 @@ package game.entities;
  */
 public abstract class MapLocation {
 
-	public Integer population; // Poblacion actual en esta localizacion
+	private Integer population; // Poblacion actual en esta localizacion
 	private Integer x; // X coords
 	private Integer y; // Y coords
 	protected Boolean destroyed = false; // Localizacion destruida
@@ -74,6 +74,10 @@ public abstract class MapLocation {
 	
 	public int getY(){
 		return this.y;
+	}
+	
+	public int getPopulation(){
+		return this.population;
 	}
 
 }
