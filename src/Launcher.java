@@ -7,8 +7,7 @@ public class Launcher {
 		cont.startGame();
 		System.out.println(cont.player1Result());
 		System.out.println(cont.player2Result()); */
-		
-		PlayerCompete juego = new PlayerCompete();
+
 		
 
 	}

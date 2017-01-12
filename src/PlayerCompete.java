@@ -14,7 +14,7 @@ public class PlayerCompete extends Problem implements GroupedProblemForm{
         if (updateFitness[i])
             for( int j = 0 ; j < pop.subpops[i].individuals.length ; j++ )
                 ((SimpleFitness)(pop.subpops[i].individuals[j].fitness)).trials = new ArrayList();
-    System.out.println("Llega a preprocess");
+    
     }
 	
 	
@@ -48,10 +48,9 @@ public class PlayerCompete extends Problem implements GroupedProblemForm{
         
         double score;
                         
-        if (score1 > score2)
-        	score = score1;
-        else score = score2;
+        score = score1 - score2;
         
+        //decimos al juego quien ha ganado
         if( updateFitness[0] )
         {
         SimpleFitness fit = ((SimpleFitness)(ind[0].fitness));
@@ -63,9 +62,10 @@ public class PlayerCompete extends Problem implements GroupedProblemForm{
         {
         SimpleFitness fit = ((SimpleFitness)(ind[1].fitness));
         fit.trials.add(new Double(score));
-        fit.setFitness(state, score, false);
+        fit.setFitness(state, - score, false);
         } 
         System.out.println("Trial Fitness updated");
+        
     }
         
 

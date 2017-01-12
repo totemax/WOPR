@@ -1,9 +1,9 @@
 
-breedthreads	= 1
+breedthreads= 1
 evalthreads	= 1
 seed.0		= time
 
-generations =	100
+generations =	1000
 quit-on-run-complete =	true
 checkpoint = false
 checkpoint-prefix = ec
@@ -22,7 +22,7 @@ exch 		= ec.simple.SimpleExchanger
 pop.subpops =				1
 pop.subpop.0 = 				ec.Subpopulation
 pop.subpop.0.size =			100
-pop.subpop.0.duplicate-retries =	2
+pop.subpop.0.duplicate-retries =	900
 
 pop.subpop.0.species.pipe.num-inds = 	2
 
@@ -31,8 +31,9 @@ pop.subpop.0.species.ind	= ec.vector.FloatVectorIndividual
 pop.subpop.0.species.fitness 	= ec.simple.SimpleFitness
 pop.subpop.0.species.min-gene	= 0
 pop.subpop.0.species.max-gene 	= 1	
-pop.subpop.0.species.genome-size	= 20
+pop.subpop.0.species.genome-size	= 27
 pop.subpop.0.species.crossover-type	= two
+pop.subpop.0.species.likelihood = 0.8
 pop.subpop.0.species.mutation-type	= reset
 pop.subpop.0.species.mutation-prob	= 0.05
 
