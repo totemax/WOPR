@@ -48,7 +48,7 @@ public class PlayerCompete extends Problem implements GroupedProblemForm{
         
         double score;
                         
-        if(score1 > score2)
+        if(score1 >= score2)
         	score=score1;
         else
         	score=score2;
