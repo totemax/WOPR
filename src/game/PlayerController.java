@@ -115,153 +115,153 @@ public class PlayerController {
 	public double CBDJ() //Metodo del controlador borroso de disparo del jugador
 	{
 		double probfallo=1;
-
+		       
 		FIS fis = new FIS();
-
+		
 		FunctionBlock functionBlock = new FunctionBlock(fis);
 		fis.addFunctionBlock("CBDJ", functionBlock);
-
+		
 		Variable dirDisparo = new Variable("dirDisparo"); // direccion del disparo del silo (salida del controlador borroso de disparo del silo)
 		Variable bajoAtaque = new Variable("bajoAtaque"); // si el jugador se encuentra o no bajo ataque
 		Variable miPoblacion = new Variable("miPoblacion"); //Poblacion que tengo
-		Variable poblacionObj = new Variable("poblacionObj"); //Poblacion del enemigo
+		Variable poblacionObj = new Variable("poblacionObj"); //Poblacion del enemigo 
 		Variable numSilosObj = new Variable("numSilosObj"); // numero de silos del objetivo
-		Variable miNumSilos = new Variable("miNumSilos"); // Numero de silos que tengo
+		Variable miNumSilos = new Variable("miNumSilos"); // Numero de silos que tengo 
 		Variable numMisiles = new Variable("numMisiles"); // Numero de misiles que tengo
 		Variable probFallo = new Variable("proFallo");
-
+		
 		Variable efectuarDisp = new Variable("efectuarDisp"); // si se efectua o no el disparo
-
-
+		
+		
 		/*
 		 * Miembros funcionales de dirDisparo
 		 */
-
+		
 		MembershipFunction dDisparo = new MembershipFunctionSingleton(new Value(50), new Value(60));
-
+		
 		LinguisticTerm ltdDisparo = new LinguisticTerm("Dir disparo",dDisparo);
 		dirDisparo.add(ltdDisparo);
-
+		
 		/*
 		 * Miembros funcionales de bajoAtaque
 		 */
-
+		
 		MembershipFunction meAtacan = new MembershipFunctionSingleton(new Value(1));
-
+		
 		MembershipFunction noAtacan = new MembershipFunctionSingleton(new Value(0));
-
+		
 		LinguisticTerm ltmAtacan = new LinguisticTerm("Ataque",meAtacan);
 		LinguisticTerm ltnAtacan = new LinguisticTerm("No Ataque",noAtacan);
 		bajoAtaque.add(ltnAtacan);
 	    bajoAtaque.add(ltmAtacan);
-
+	    
         /*
          * Miembros funcionales de miPoblacion
          */
-
-       MembershipFunction pmAlta = new MembershipFunctionGaussian(new Value(1500), new Value(750));
-       MembershipFunction pmMedia = new MembershipFunctionGaussian(new Value(725), new Value(173.205));
-       MembershipFunction pmBaja = new MembershipFunctionGaussian(new Value(205), new Value(146));
-
+	    
+       MembershipFunction pmAlta = new MembershipFunctionSingleton(new Value(1500));
+       MembershipFunction pmMedia = new MembershipFunctionSingleton(new Value(725));
+       MembershipFunction pmBaja = new MembershipFunctionSingleton(new Value(205));
+       
        LinguisticTerm ltpmAlta = new LinguisticTerm("Alta",pmAlta);
        LinguisticTerm ltpmMedia = new LinguisticTerm("Media",pmMedia);
        LinguisticTerm ltpmBaja = new LinguisticTerm("Baja",pmBaja);
        miPoblacion.add(ltpmAlta);
        miPoblacion.add(ltpmMedia);
        miPoblacion.add(ltpmBaja);
-
+       
        /*
         * Miembros funcionales de poblacionObj
         */
-
-       MembershipFunction pObjAlta = new MembershipFunctionGaussian(new Value(1500), new Value(750));
-       MembershipFunction pObjMedia = new MembershipFunctionGaussian(new Value(725), new Value(173.205));
-       MembershipFunction pObjBaja = new MembershipFunctionGaussian(new Value(205), new Value(146));
-
+	   
+       MembershipFunction pObjAlta = new MembershipFunctionSingleton(new Value(1500));
+       MembershipFunction pObjMedia = new MembershipFunctionSingleton(new Value(725));
+       MembershipFunction pObjBaja = new MembershipFunctionSingleton(new Value(205));
+       
        LinguisticTerm ltpObjAlta = new LinguisticTerm("Alta",pObjAlta);
        LinguisticTerm ltpObjMedia = new LinguisticTerm("Media",pObjMedia);
        LinguisticTerm ltpObjBaja = new LinguisticTerm("Baja",pObjBaja);
        poblacionObj.add(ltpObjAlta);
        poblacionObj.add(ltpObjMedia);
        poblacionObj.add(ltpObjBaja);
-
+       
        /*
         * Miembros funcionales de numSilosObj
         */
-
+	    
        MembershipFunction nmObjAlto = new MembershipFunctionSingleton(new Value(5), new Value(4));
        MembershipFunction nmObjMedio = new MembershipFunctionSingleton(new Value(3));
        MembershipFunction nmObjBajo = new MembershipFunctionTriangular(new Value(2), new Value(1), new Value(0));
-
+       
        LinguisticTerm ltnmObjAlto = new LinguisticTerm("Alto",nmObjAlto);
        LinguisticTerm ltnmObjMedio = new LinguisticTerm("Medio",nmObjMedio);
        LinguisticTerm ltnmObjBajo = new LinguisticTerm("Bajo",nmObjBajo);
        numSilosObj.add(ltnmObjAlto);
        numSilosObj.add(ltnmObjMedio);
        numSilosObj.add(ltnmObjBajo);
-
+       
        /*
         * Miembros funcionales de miNumSilos
         */
-
+	    
        MembershipFunction mnSilosAlto = new MembershipFunctionSingleton(new Value(6), new Value(5));
        MembershipFunction mnSilosMedio = new MembershipFunctionSingleton(new Value(4), new Value(3));
        MembershipFunction mnSilosBajo = new MembershipFunctionTriangular(new Value(2), new Value(1), new Value(0));
-
+       
        LinguisticTerm ltmnSilosAlto = new LinguisticTerm("Alto",mnSilosAlto);
        LinguisticTerm ltmnSilosMedio = new LinguisticTerm("Medio",mnSilosMedio);
        LinguisticTerm ltmnSilosBajo = new LinguisticTerm("Bajo",mnSilosBajo);
        miNumSilos.add(ltmnSilosAlto);
        miNumSilos.add(ltmnSilosMedio);
        miNumSilos.add(ltmnSilosBajo);
-
+	   
        /*
         * Miembros funcionales de numMisiles
         */
-
+       
        MembershipFunction nmSilosAlto = new MembershipFunctionSingleton(new Value(5), new Value(4));
        MembershipFunction nmSilosMedio = new MembershipFunctionSingleton(new Value(3));
        MembershipFunction nmSilosBajo = new MembershipFunctionTriangular(new Value(2), new Value(1), new Value(0));
-
+       
        LinguisticTerm ltnmSilosAlto = new LinguisticTerm("Alto",nmSilosAlto);
        LinguisticTerm ltnmSilosMedio = new LinguisticTerm("Medio",nmSilosMedio);
        LinguisticTerm ltnmSilosBajo = new LinguisticTerm("Bajo",nmSilosBajo);
        numMisiles.add(ltnmSilosAlto);
        numMisiles.add(ltnmSilosMedio);
        numMisiles.add(ltnmSilosBajo);
-
+       
        /*
         * Miembros funcionales de efectuarDisp
         */
-
+		
        MembershipFunction eDispSi = new MembershipFunctionSingleton(new Value(1));
        MembershipFunction eDispNo = new MembershipFunctionSingleton(new Value(0));
-
+       
        LinguisticTerm lteDispSi = new LinguisticTerm("Si",eDispSi);
        LinguisticTerm lteDispNo = new LinguisticTerm("No",eDispNo);
        efectuarDisp.add(lteDispSi);
        efectuarDisp.add(lteDispNo);
-
+       
        /*
         * Miembros funcionales de probabilidad de fallo
         */
-
+       
        MembershipFunction pFalloAlta = new MembershipFunctionTriangular(new Value(100), new Value(90), new Value(80));
        MembershipFunction pFalloMedia = new MembershipFunctionTrapetzoidal(new Value(70), new Value(60),new Value(50), new Value(40));
        MembershipFunction pFalloBaja = new MembershipFunctionTrapetzoidal(new Value(30), new Value(20), new Value(10), new Value(0));
-
+       
        LinguisticTerm ltpFalloAlta = new LinguisticTerm("Alta",pFalloAlta);
        LinguisticTerm ltpFalloMedia = new LinguisticTerm("Media",pFalloMedia);
        LinguisticTerm ltpFalloBaja = new LinguisticTerm("Baja",pFalloBaja);
        probFallo.add(ltpFalloAlta);
        probFallo.add(ltpFalloMedia);
        probFallo.add(ltpFalloBaja);
-
+       
    	   RuleBlock ruleBlock = new RuleBlock(functionBlock);
    	   ruleBlock.setName("Reglas de disparo del jugador");
    	   ruleBlock.setRuleAccumulationMethod(new RuleAccumulationMethodMax());
    	   ruleBlock.setRuleActivationMethod(new RuleActivationMethodMin());
-
+		
 	   Rule rule1 = new Rule("Rule1",ruleBlock);
 	   RuleTerm term1rule1 = new RuleTerm(numMisiles, "Alto",false);
 	   RuleTerm term2rule1 = new RuleTerm(bajoAtaque, "Ataque",false);
@@ -281,7 +281,7 @@ public class PlayerController {
 	   rule1.setAntecedents(antecedenteAnd17);
 	   rule1.addConsequent(efectuarDisp, "Si", false);
 	   ruleBlock.add(rule1);
-
+   	
 	   Rule rule2 = new Rule("Rule2",ruleBlock);
 	   RuleTerm term1rule2 = new RuleTerm(numMisiles, "Alto",false);
 	   RuleTerm term2rule2 = new RuleTerm(bajoAtaque, "Ataque",false);
@@ -301,7 +301,7 @@ public class PlayerController {
 	   rule2.setAntecedents(antecedenteAnd27);
 	   rule2.addConsequent(efectuarDisp, "No", false);
 	   ruleBlock.add(rule2);
-
+	   
 	   Rule rule3 = new Rule("Rule3",ruleBlock);
 	   RuleTerm term1rule3 = new RuleTerm(numMisiles, "Alto",false);
 	   RuleTerm term2rule3 = new RuleTerm(bajoAtaque, "No Ataque",false);
@@ -321,7 +321,7 @@ public class PlayerController {
 	   rule3.setAntecedents(antecedenteAnd37);
 	   rule3.addConsequent(efectuarDisp, "Si", false);
 	   ruleBlock.add(rule3);
-
+	   
 	   Rule rule4 = new Rule("Rule4",ruleBlock);
 	   RuleTerm term1rule4 = new RuleTerm(numMisiles, "Alto",false);
 	   RuleTerm term2rule4 = new RuleTerm(bajoAtaque, "No Ataque",false);
@@ -341,7 +341,7 @@ public class PlayerController {
 	   rule4.setAntecedents(antecedenteAnd47);
 	   rule4.addConsequent(efectuarDisp, "No", false);
 	   ruleBlock.add(rule4);
-
+	   
 	   Rule rule5 = new Rule("Rule5",ruleBlock);
 	   RuleTerm term1rule5 = new RuleTerm(numMisiles, "Bajo",false);
 	   RuleTerm term2rule5 = new RuleTerm(bajoAtaque, "Ataque",false);
@@ -361,7 +361,7 @@ public class PlayerController {
 	   rule5.setAntecedents(antecedenteAnd57);
 	   rule5.addConsequent(efectuarDisp, "Si", false);
 	   ruleBlock.add(rule5);
-
+	   
 	   Rule rule6 = new Rule("Rule6",ruleBlock);
 	   RuleTerm term1rule6 = new RuleTerm(numMisiles, "Alto",false);
 	   RuleTerm term2rule6 = new RuleTerm(bajoAtaque, "No Ataque",false);
@@ -381,7 +381,7 @@ public class PlayerController {
 	   rule6.setAntecedents(antecedenteAnd67);
 	   rule6.addConsequent(efectuarDisp, "Si", false);
 	   ruleBlock.add(rule6);
-
+	   
 	   Rule rule7 = new Rule("Rule7",ruleBlock);
 	   RuleTerm term1rule7 = new RuleTerm(numMisiles, "Alto",false);
 	   RuleTerm term2rule7 = new RuleTerm(bajoAtaque, "Ataque",false);
@@ -401,7 +401,7 @@ public class PlayerController {
 	   rule7.setAntecedents(antecedenteAnd77);
 	   rule7.addConsequent(efectuarDisp, "Si", false);
 	   ruleBlock.add(rule7);
-
+	   
 	   Rule rule8 = new Rule("Rule8",ruleBlock);
 	   RuleTerm term1rule8 = new RuleTerm(numMisiles, "Medio",false);
 	   RuleTerm term2rule8 = new RuleTerm(bajoAtaque, "No Ataque",false);
@@ -441,7 +441,7 @@ public class PlayerController {
 	   rule9.setAntecedents(antecedenteAnd97);
 	   rule9.addConsequent(efectuarDisp, "Si", false);
 	   ruleBlock.add(rule9);
-
+	   
 	   Rule rule10 = new Rule("Rule10",ruleBlock);
 	   RuleTerm term1rule10 = new RuleTerm(numMisiles, "Alto",false);
 	   RuleTerm term2rule10 = new RuleTerm(bajoAtaque, "Ataque",false);
@@ -461,8 +461,8 @@ public class PlayerController {
 	   rule10.setAntecedents(antecedenteAnd107);
 	   rule10.addConsequent(efectuarDisp, "Si", false);
 	   ruleBlock.add(rule10);
-
-	   		HashMap<String, RuleBlock> ruleBlocksMap = new HashMap<String,RuleBlock>();
+	   
+		HashMap<String, RuleBlock> ruleBlocksMap = new HashMap<String,RuleBlock>();
 		ruleBlocksMap.put(ruleBlock.getName(), ruleBlock);
 		functionBlock.setRuleBlocks(ruleBlocksMap);
 		
@@ -479,7 +479,6 @@ public class PlayerController {
 	   
 	   
 	   return fis.getVariable("efectuarDisp").getValue();
-	   
-	 }
+	}
 
 }
