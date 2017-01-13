@@ -1,10 +1,6 @@
 package game.entities;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import game.GameController;
@@ -37,9 +33,12 @@ public class Silo extends MapLocation {
 	private static final Integer MAX_MISSILES = 6;
 
 	private Integer missiles = 0; // Misiles del silo
+	
+	private double[] weights;
 
-	public Silo(Integer x, Integer y) {
+	public Silo(Integer x, Integer y, double[] weights) {
 		super(SILO_POPULATION, x, y);
+		this.weights = weights;
 	}
 
 	public boolean getCharge(MapLocation[] rivalLocations) {
@@ -416,6 +415,7 @@ public class Silo extends MapLocation {
 		RuleExpression rule1Antecessor1 = new RuleExpression(term1rule1, term2rule1, RuleConnectionMethodAndMin.get());
 		rule1.setAntecedents(rule1Antecessor1);
 		rule1.addConsequent(dirDisparo, "DispOK", false);
+		rule1.setWeight(this.weights[0]);
 		ruleBlock.add(rule1);
 
 		// IF NUM_MISSILES != BAJO && DISTANCIA != LARGA && IS_SILO THEN
@@ -429,6 +429,7 @@ public class Silo extends MapLocation {
 				RuleConnectionMethodAndMin.get());
 		rule2.setAntecedents(rule2Antecessor2);
 		rule2.addConsequent(dirDisparo, "DispOK", false);
+		rule2.setWeight(this.weights[1]);
 		ruleBlock.add(rule2);
 
 		// IF NUM_MISSILES == BAJO || DISTANCIA == LARGA THEN DISPARO_KO
@@ -438,6 +439,7 @@ public class Silo extends MapLocation {
 		RuleExpression rule3Antecessor1 = new RuleExpression(term1rule3, term2rule3, RuleConnectionMethodOrMax.get());
 		rule3.setAntecedents(rule3Antecessor1);
 		rule3.addConsequent(dirDisparo, "DispKO", false);
+		rule3.setWeight(this.weights[2]);
 		ruleBlock.add(rule3);
 		
 		// IF NUM_MISSILES != BAJO && DISTANCIA != LARGA && POBLACION = ALTA
@@ -451,6 +453,7 @@ public class Silo extends MapLocation {
 				RuleConnectionMethodAndMin.get());
 		rule4.setAntecedents(rule4Antecessor2);
 		rule4.addConsequent(dirDisparo, "DispOK", true);
+		rule4.setWeight(this.weights[3]);
 		ruleBlock.add(rule4);
 		
 		// IF (NUM_MISSILES != ALTO || DISTANCIA != CORTA) AND (POBLACION !=
@@ -466,6 +469,7 @@ public class Silo extends MapLocation {
 				RuleConnectionMethodAndMin.get());
 		rule5.setAntecedents(rule5And);
 		rule5.addConsequent(dirDisparo, "DispKO", false);
+		rule5.setWeight(this.weights[4]);
 		ruleBlock.add(rule5);
 		
 		HashMap<String, RuleBlock> ruleBlocksMap = new HashMap<String, RuleBlock>();

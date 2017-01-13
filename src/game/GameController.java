@@ -29,10 +29,10 @@ public class GameController{
 	private static final double FAIL_MOD = 5;
 	private static final Integer MAX_FAIL_PROB = 60;
 
-	private Boolean isFinished = false;
 	PlayerController player1, player2;
 	List<PlayerMovement> player1Movements = new ArrayList<>();
 	List<PlayerMovement> player2Movements = new ArrayList<>();
+	double[] player1Weights, player2Weights;
 
 	/**
 	 * Constructor.
@@ -40,7 +40,9 @@ public class GameController{
 	 * En este constructor se deberan incorporar los descriptores de cada
 	 * jugador.
 	 */
-	public GameController(Integer[] player1Weights, Integer[] player2Weights) {
+	public GameController(double[] player1Weights, double[] player2Weights) {
+		this.player1Weights = player1Weights;
+		this.player2Weights = player2Weights;
 		MapLocation[] player1Map = this.generateMap();
 		MapLocation[] player2Map = this.reflectMap(player1Map);
 		this.player1 = new PlayerController(player1Weights, player1Map);
@@ -59,7 +61,6 @@ public class GameController{
 			this.player2.recharge(MISSILE_PER_ROUND, this.player1.getPlayerLocations());
 			this.player2Movements.addAll(this.player2.resolveMovement(this.player1.getPlayerLocations()));
 		}
-		this.isFinished = true;
 	}
 
 	public double getFailProb(MapLocation silo, MapLocation obj){
@@ -114,7 +115,7 @@ public class GameController{
 				x = rand.nextInt(MAP_WIDTH);
 				y = rand.nextInt(MAP_HEIGHT);
 			} while (map[x][y] != null);
-			map[x][y] = new Silo(x, y);
+			map[x][y] = new Silo(x, y, this.player1Weights);
 		}
 
 		for (int i = 0; i < NUM_CITIES; i++) {
@@ -145,7 +146,7 @@ public class GameController{
 		MapLocation[] returnMap = new MapLocation[map.length];
 		for (int i = 0; i < map.length; i++) {
 			if (map[i].getClass().equals(Silo.class)) {
-				returnMap[i] = new Silo((MAP_WIDTH * 2) - map[i].getX(), map[i].getY());
+				returnMap[i] = new Silo((MAP_WIDTH * 2) - map[i].getX(), map[i].getY(), this.player2Weights);
 			} else if (map[i].getClass().equals(City.class)) {
 				returnMap[i] = new City((MAP_WIDTH * 2) - map[i].getX(), map[i].getY());
 			} else {
