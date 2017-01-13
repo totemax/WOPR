@@ -1,11 +1,11 @@
 package game.entities;
 
 /**
- * Descripción de la ubicación de mapa de bosque.
+ * DescripciÃ³n de la ubicaciÃ³n de mapa de bosque.
  */
 public class Forest extends MapLocation {
 
-	private static final Integer FOREST_POPULATION = 5000; // Población inicial
+	public static final Integer FOREST_POPULATION = 5000; // Poblaciï¿½n inicial
 															// del bosque
 
 	/**

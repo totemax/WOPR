@@ -30,12 +30,12 @@ import net.sourceforge.jFuzzyLogic.ruleConnectionMethod.RuleConnectionMethodAndM
 public class PlayerController {
 
 	private MapLocation[] playerLocations; // Mapa del jugador
-	Integer[] weights;
+	double[] weights;
 
 	/**
 	 * Constructor
 	 */
-	public PlayerController(Integer[] weights, MapLocation[] playerLocations) {
+	public PlayerController(double[] weights, MapLocation[] playerLocations) {
 		this.playerLocations = playerLocations;
 		this.weights = weights;
 	}
@@ -77,7 +77,7 @@ public class PlayerController {
 	public Integer getPopulation(){
 		Integer pop = 0;
 		for(MapLocation loc : this.getPlayerLocations()){
-			pop += loc.population;
+			pop += loc.getPopulation();
 		}
 		return pop;
 	}
