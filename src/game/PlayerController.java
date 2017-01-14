@@ -20,6 +20,7 @@ import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionPieceWiseLinear;
 import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionSingleton;
 import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionTriangular;
 import net.sourceforge.jFuzzyLogic.membership.Value;
+import net.sourceforge.jFuzzyLogic.plot.JDialogFis;
 import net.sourceforge.jFuzzyLogic.rule.LinguisticTerm;
 import net.sourceforge.jFuzzyLogic.rule.Rule;
 import net.sourceforge.jFuzzyLogic.rule.RuleBlock;
@@ -69,7 +70,6 @@ public class PlayerController {
 				}
 			}
 			loc.recharge();
-			System.out.println("Recarga de silo con coordenadas " + loc.getX() + ","+ loc.getY());
 		}
 	}
 
@@ -85,7 +85,7 @@ public class PlayerController {
 					if (this.CBDJ(mov, MapLocation.getMapPopulation(opponentLocations),
 							Silo.getSilosInMap(opponentLocations))) {
 						movements.add(mov);
-						((Silo)mov.getFrom()).dispararMisil();
+						((Silo) mov.getFrom()).dispararMisil();
 					}
 				}
 			}
@@ -200,9 +200,12 @@ public class PlayerController {
 		/*
 		 * Miembros funcionales de poblacionObj
 		 */
-		MembershipFunction pObjAlta = new MembershipFunctionSingleton(new Value(City.CITY_POPULATION));
-		MembershipFunction pObjMedia = new MembershipFunctionSingleton(new Value(Forest.FOREST_POPULATION));
-		MembershipFunction pObjBaja = new MembershipFunctionSingleton(new Value(Silo.SILO_POPULATION));
+		MembershipFunction pObjAlta = new MembershipFunctionPieceWiseLinear(popAltaX, popAltaY);
+		MembershipFunction pObjMedia = new MembershipFunctionTriangular(
+				new Value(GameController.MAX_POPULATION_PLAYER / 3),
+				new Value(GameController.MAX_POPULATION_PLAYER / 2),
+				new Value((2 * GameController.MAX_POPULATION_PLAYER / 3) + 10));
+		MembershipFunction pObjBaja = new MembershipFunctionPieceWiseLinear(popBajaX, popBajaY);
 
 		LinguisticTerm ltpObjAlta = new LinguisticTerm("Alta", pObjAlta);
 		LinguisticTerm ltpObjMedia = new LinguisticTerm("Media", pObjMedia);
@@ -641,12 +644,12 @@ public class PlayerController {
 		ruleBlocksMap.put(ruleBlock.getName(), ruleBlock);
 		functionBlock.setRuleBlocks(ruleBlocksMap);
 
-		fis.getVariable("numMisiles").setValue(this.getNumMissiles());
+		fis.getVariable("numMisiles").setValue(this.getNumMissiles().doubleValue());
 		fis.getVariable("bajoAtaque").setValue(this.game.underAttack(this) ? 1 : 0);
-		fis.getVariable("miPoblacion").setValue(this.getPopulation());
+		fis.getVariable("miPoblacion").setValue(this.getPopulation().doubleValue());
 		fis.getVariable("poblacionObj").setValue(opponentPopulation.doubleValue());
 		fis.getVariable("numSilosObj").setValue(opponentSilos.doubleValue());
-		fis.getVariable("miNumSilos").setValue(this.getNumSilos());
+		fis.getVariable("miNumSilos").setValue(this.getNumSilos().doubleValue());
 		fis.getVariable("score").setValue(mov.getScore());
 		fis.evaluate();
 

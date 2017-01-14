@@ -64,11 +64,9 @@ public class GameController {
 	 */
 	public void startGame() {
 		for (int i = 0; i < NUM_ROUNDS; i++) {
-			System.out.println("Ataques player1");
 			this.resolveMovements(this.movementList.get(player1));
 			this.player1.recharge(MISSILE_PER_ROUND, this.player2.getPlayerLocations());
 			this.movementList.get(player1).addAll(this.player1.resolveMovement(this.player2.getPlayerLocations()));
-			System.out.println("Ataques player2");
 			this.resolveMovements(this.movementList.get(player2));
 			this.player2.recharge(MISSILE_PER_ROUND, this.player1.getPlayerLocations());
 			this.movementList.get(player2).addAll(this.player2.resolveMovement(this.player1.getPlayerLocations()));
@@ -88,11 +86,9 @@ public class GameController {
 	public void resolveMovements(List<PlayerMovement> movs) {
 		Random rand = new Random();
 		for (PlayerMovement mov : movs) {
-			System.out.println("Ataque desde coordenadas " + mov.getFrom().getX() + "," + mov.getFrom().getY() + " a localizacion " + mov.getTo().getX() + "," + mov.getTo().getY() + " con poblacion " + mov.getTo().getPopulation());
 			double failProb = this.getFailProb(mov.getFrom(), mov.getTo());
 			double num = rand.nextInt(100);
 			if (num > failProb) {
-				System.out.println("Disparo acertado");
 				mov.getTo().destroyLocation();
 			}
 		}
@@ -108,18 +104,22 @@ public class GameController {
 	public Integer player1Result() {
 		Integer totalScore = 0;
 		totalScore += this.player1.getPopulation() / 100;
-		totalScore += this.player1.getNumMissiles();
-		totalScore += this.player1.getNumSilos();
-		totalScore += this.player1.getNumCities();
+		totalScore += this.player1.getNumMissiles()*10;
+		totalScore += this.player1.getNumSilos()*100;
+		totalScore += this.player1.getNumCities()*100;
+		totalScore += (GameController.MAX_POPULATION_PLAYER - this.player2.getPopulation()) / 100;
+		totalScore += (GameController.NUM_SILOS - this.player2.getNumSilos()) * 100;
 		return totalScore;
 	}
 
 	public Integer player2Result() {
 		Integer totalScore = 0;
 		totalScore += this.player2.getPopulation() / 100;
-		totalScore += this.player2.getNumMissiles();
-		totalScore += this.player2.getNumSilos();
-		totalScore += this.player2.getNumCities();
+		totalScore += this.player2.getNumMissiles()*10;
+		totalScore += this.player2.getNumSilos()*100;
+		totalScore += this.player2.getNumCities()*100;
+		totalScore += (GameController.MAX_POPULATION_PLAYER - this.player1.getPopulation()) / 100;
+		totalScore += (GameController.NUM_SILOS - this.player1.getNumSilos()) * 100;
 		return totalScore;
 	}
 
@@ -174,7 +174,7 @@ public class GameController {
 		return returnMap;
 	}
 
-	private float[] getSiloWeights(double[] allWeights){
+	private float[] getSiloWeights(float[] allWeights){
 		float[] siloWeights = new float[SILO_WEIGHTS_QTY];
 		System.arraycopy(allWeights, PLAYER_WEIGHTS_QTY, siloWeights, 0, SILO_WEIGHTS_QTY);
 		return siloWeights;
