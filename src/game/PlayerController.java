@@ -69,7 +69,8 @@ public class PlayerController {
 					loc = entry.getKey();
 				}
 			}
-			loc.recharge();
+			if (loc != null)
+				loc.recharge();
 		}
 	}
 
