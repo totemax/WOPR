@@ -3,6 +3,7 @@ package game;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import game.entities.City;
 import game.entities.Forest;
@@ -11,6 +12,9 @@ import game.entities.PlayerMovement;
 import game.entities.Silo;
 import net.sourceforge.jFuzzyLogic.FIS;
 import net.sourceforge.jFuzzyLogic.FunctionBlock;
+import net.sourceforge.jFuzzyLogic.defuzzifier.Defuzzifier;
+import net.sourceforge.jFuzzyLogic.defuzzifier.DefuzzifierCenterOfGravity;
+import net.sourceforge.jFuzzyLogic.defuzzifier.DefuzzifierCenterOfGravitySingletons;
 import net.sourceforge.jFuzzyLogic.membership.MembershipFunction;
 import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionPieceWiseLinear;
 import net.sourceforge.jFuzzyLogic.membership.MembershipFunctionSingleton;
@@ -47,14 +51,24 @@ public class PlayerController {
 	}
 
 	public void recharge(int numMissiles, MapLocation[] opponentLocations) {
-		for (MapLocation loc : this.playerLocations) {
-			if (!loc.isDestroyed() && loc.getClass().equals(Silo.class) && ((Silo) loc).getCharge(opponentLocations)) {
-				// Aqui ira el controlador borroso de carga general
-				// Lo hago aleatorio para probar
-				double rand = Math.random();
-				if (rand > 0.7)
-					((Silo) loc).recharge();
+		for (int i = 0; i < numMissiles; i++) {
+			HashMap<Silo, Double> rechargeScores = new HashMap<>();
+			for (MapLocation loc : this.playerLocations) {
+				if (!loc.isDestroyed() && loc.getClass().equals(Silo.class)
+						&& ((Silo) loc).getNumMissiles() < Silo.MAX_MISSILES) {
+					rechargeScores.put((Silo) loc, Double.valueOf(this.CBCJ((Silo) loc, opponentLocations)));
+				}
 			}
+			double score = 0;
+			Silo loc = null;
+			for (Map.Entry<Silo, Double> entry : rechargeScores.entrySet()) {
+				if (score < entry.getValue()) {
+					score = entry.getValue();
+					loc = entry.getKey();
+				}
+			}
+			loc.recharge();
+			System.out.println("Recarga de silo con coordenadas " + loc.getX() + ","+ loc.getY());
 		}
 	}
 
@@ -67,8 +81,10 @@ public class PlayerController {
 				// quienes disparan
 				PlayerMovement mov = siloLoc.getDisparo(opponentLocations);
 				if (mov != null) {
-					if (this.CBDJ(mov, MapLocation.getMapPopulation(opponentLocations), Silo.getSilosInMap(opponentLocations))){
+					if (this.CBDJ(mov, MapLocation.getMapPopulation(opponentLocations),
+							Silo.getSilosInMap(opponentLocations))) {
 						movements.add(mov);
+						((Silo)mov.getFrom()).dispararMisil();
 					}
 				}
 			}
@@ -104,7 +120,11 @@ public class PlayerController {
 		return numCities;
 	}
 
-	public boolean CBDJ(PlayerMovement mov, Integer opponentPopulation, Integer opponentSilos) // Metodo del controlador borroso de
+	public boolean CBDJ(PlayerMovement mov, Integer opponentPopulation, Integer opponentSilos) // Metodo
+																								// del
+																								// controlador
+																								// borroso
+																								// de
 	{
 
 		FIS fis = new FIS();
@@ -129,6 +149,15 @@ public class PlayerController {
 
 		Variable efectuarDisp = new Variable("efectuarDisp"); // si se efectua o
 																// no el disparo
+		
+		functionBlock.setVariable(bajoAtaque.getName(), bajoAtaque);
+		functionBlock.setVariable(miPoblacion.getName(), miPoblacion);
+		functionBlock.setVariable(poblacionObj.getName(), poblacionObj);
+		functionBlock.setVariable(numSilosObj.getName(), numSilosObj);
+		functionBlock.setVariable(miNumSilos.getName(), miNumSilos);
+		functionBlock.setVariable(numMisiles.getName(), numMisiles);
+		functionBlock.setVariable(scoreDisparo.getName(), scoreDisparo);
+		functionBlock.setVariable(efectuarDisp.getName(), efectuarDisp);
 
 		/*
 		 * Miembros funcionales de bajoAtaque
@@ -156,8 +185,8 @@ public class PlayerController {
 				new Value(GameController.MAX_POPULATION_PLAYER / 2),
 				new Value((2 * GameController.MAX_POPULATION_PLAYER / 3) + 10));
 
-		Value[] popBajaX = { new Value(GameController.MAX_POPULATION_PLAYER / 3 + 10), new Value(0) };
-		Value[] popBajaY = { new Value(0), new Value(1) };
+		Value[] popBajaX = { new Value(0), new Value(GameController.MAX_POPULATION_PLAYER / 3 + 10) };
+		Value[] popBajaY = { new Value(1), new Value(0) };
 		MembershipFunction pmBaja = new MembershipFunctionPieceWiseLinear(popBajaX, popBajaY);
 
 		LinguisticTerm ltpmAlta = new LinguisticTerm("Alta", pmAlta);
@@ -184,16 +213,16 @@ public class PlayerController {
 		/*
 		 * Miembros funcionales de numSilosObj
 		 */
-		
+
 		Value[] silosAltosX = { new Value(2 * GameController.NUM_SILOS / 3), new Value(GameController.NUM_SILOS) };
 		Value[] silosAltosY = { new Value(0), new Value(1) };
 
 		MembershipFunction nmObjAlto = new MembershipFunctionPieceWiseLinear(silosAltosX, silosAltosY);
 		MembershipFunction nmObjMedio = new MembershipFunctionTriangular(new Value(GameController.NUM_SILOS / 3),
 				new Value(GameController.NUM_SILOS / 2), new Value((2 * GameController.NUM_SILOS / 3) + 1));
-		
-		Value[] silosBajosX = {new Value(0),new Value((GameController.NUM_SILOS / 3) + 1)};
-		Value[] silosBajosY = {new Value(1), new Value(0)};
+
+		Value[] silosBajosX = { new Value(0), new Value((GameController.NUM_SILOS / 3) + 1) };
+		Value[] silosBajosY = { new Value(1), new Value(0) };
 		MembershipFunction nmObjBajo = new MembershipFunctionPieceWiseLinear(silosBajosX, silosBajosY);
 
 		LinguisticTerm ltnmObjAlto = new LinguisticTerm("Alto", nmObjAlto);
@@ -222,15 +251,18 @@ public class PlayerController {
 		/*
 		 * Miembros funcionales de numMisiles
 		 */
-		
-		Value[] missileAltoX = {new Value(2*GameController.MAX_MISSILE_PLAYER / 3), new Value(GameController.MAX_MISSILE_PLAYER)};
-		Value[] missileAltoY = {new Value(0), new Value(1)};
+
+		Value[] missileAltoX = { new Value(2 * GameController.MAX_MISSILE_PLAYER / 3),
+				new Value(GameController.MAX_MISSILE_PLAYER) };
+		Value[] missileAltoY = { new Value(0), new Value(1) };
 
 		MembershipFunction nmMissilesAlto = new MembershipFunctionPieceWiseLinear(missileAltoX, missileAltoY);
-		MembershipFunction nmMissilesMedio = new MembershipFunctionTriangular(new Value(GameController.MAX_MISSILE_PLAYER / 3), new Value(GameController.MAX_MISSILE_PLAYER / 2), new Value((2*GameController.MAX_MISSILE_PLAYER/3) + 1));
-		
-		Value[] missilesBajoX = {new Value(0), new Value((GameController.MAX_MISSILE_PLAYER/3)+1)};
-		Value[] missilesBajoY = {new Value(1), new Value(0)};
+		MembershipFunction nmMissilesMedio = new MembershipFunctionTriangular(
+				new Value(GameController.MAX_MISSILE_PLAYER / 3), new Value(GameController.MAX_MISSILE_PLAYER / 2),
+				new Value((2 * GameController.MAX_MISSILE_PLAYER / 3) + 1));
+
+		Value[] missilesBajoX = { new Value(0), new Value((GameController.MAX_MISSILE_PLAYER / 3) + 1) };
+		Value[] missilesBajoY = { new Value(1), new Value(0) };
 		MembershipFunction nmSilosBajo = new MembershipFunctionPieceWiseLinear(missilesBajoX, missilesBajoY);
 
 		LinguisticTerm ltnmSilosAlto = new LinguisticTerm("Alto", nmMissilesAlto);
@@ -243,27 +275,37 @@ public class PlayerController {
 		/*
 		 * Miembros funcionales de efectuarDisp
 		 */
+		/*
+		 * Miembros funcionales para la variable de salida dirDisparo(direccion
+		 * del disparo)
+		 */
+		Value[] dispKOX = { new Value(0), new Value(50) };
+		Value[] dispKOY = { new Value(1), new Value(0) };
+		MembershipFunction dDispKO = new MembershipFunctionPieceWiseLinear(dispKOX, dispKOY);
+		LinguisticTerm ltdDispKO = new LinguisticTerm("Si", dDispKO);
 
-		MembershipFunction eDispSi = new MembershipFunctionSingleton(new Value(1));
-		MembershipFunction eDispNo = new MembershipFunctionSingleton(new Value(0));
+		Value[] dispOKX = { new Value(50), new Value(100) };
+		Value[] dispOKY = { new Value(0), new Value(1) };
+		MembershipFunction dDispOK = new MembershipFunctionPieceWiseLinear(dispOKX, dispOKY);
+		LinguisticTerm ltdDispOK = new LinguisticTerm("No", dDispOK);
 
-		LinguisticTerm lteDispSi = new LinguisticTerm("Si", eDispSi);
-		LinguisticTerm lteDispNo = new LinguisticTerm("No", eDispNo);
-		efectuarDisp.add(lteDispSi);
-		efectuarDisp.add(lteDispNo);
+		efectuarDisp.add(ltdDispKO);
+		efectuarDisp.add(ltdDispOK);
+
+		efectuarDisp.setDefuzzifier(new DefuzzifierCenterOfGravity(efectuarDisp));
 
 		/*
 		 * Miembros funcionales de puntuacion de tiro
 		 */
 
-		Value[] scoreAltoX = {new Value(60), new Value(100)};
-		Value[] scoreAltoY = {new Value(0), new Value(0)};
+		Value[] scoreAltoX = { new Value(60), new Value(100) };
+		Value[] scoreAltoY = { new Value(0), new Value(1) };
 		MembershipFunction scoreAlto = new MembershipFunctionPieceWiseLinear(scoreAltoX, scoreAltoY);
 		MembershipFunction scoreMedio = new MembershipFunctionTriangular(new Value(40), new Value(60), new Value(70));
 
 		LinguisticTerm ltpScoreAlto = new LinguisticTerm("Alto", scoreAlto);
 		LinguisticTerm ltpScoreMid = new LinguisticTerm("Medio", scoreMedio);
-		
+
 		scoreDisparo.add(ltpScoreAlto);
 		scoreDisparo.add(ltpScoreMid);
 
@@ -272,8 +314,8 @@ public class PlayerController {
 		ruleBlock.setRuleAccumulationMethod(new RuleAccumulationMethodMax());
 		ruleBlock.setRuleActivationMethod(new RuleActivationMethodMin());
 
-		
-		// IF NUM_MISSILES == ALTO AND BAJO_ATAQUE AND POB_OBJ == ALTA AND NUM_SILOS_OBJ == ALTO AND SCORE_DISPARO = ALTO THEN DISPARO
+		// IF NUM_MISSILES == ALTO AND BAJO_ATAQUE AND POB_OBJ == ALTA AND
+		// NUM_SILOS_OBJ == ALTO AND SCORE_DISPARO = ALTO THEN DISPARO
 		Rule rule1 = new Rule("Rule1", ruleBlock);
 		RuleTerm term1rule1 = new RuleTerm(numMisiles, "Alto", false);
 		RuleTerm term2rule1 = new RuleTerm(bajoAtaque, "Ataque", false);
@@ -292,7 +334,9 @@ public class PlayerController {
 		rule1.setWeight(this.weights[0]);
 		ruleBlock.add(rule1);
 
-		// IF NUM_MISSILES == ALTO AND BAJO_ATAQUE AND POBLACION_OBJ = ALTA AND NUM_SILOS_OBJ == ALTO AND MI_NUM_SILOS = ALTO AND SCORE_DISPARO != ALTO THEN NO_DISPARO
+		// IF NUM_MISSILES == ALTO AND BAJO_ATAQUE AND POBLACION_OBJ = ALTA AND
+		// NUM_SILOS_OBJ == ALTO AND MI_NUM_SILOS = ALTO AND SCORE_DISPARO !=
+		// ALTO THEN NO_DISPARO
 		Rule rule2 = new Rule("Rule2", ruleBlock);
 		RuleTerm term1rule2 = new RuleTerm(numMisiles, "Alto", false);
 		RuleTerm term2rule2 = new RuleTerm(bajoAtaque, "Ataque", false);
@@ -314,7 +358,9 @@ public class PlayerController {
 		rule2.setWeight(this.weights[1]);
 		ruleBlock.add(rule2);
 
-		// IF NUM_MISSILES == ALTO AND !BAJO_ATAQUE AND POBLACION_OBJ == ALTA AND (MI_POBLACION != ALTA OR MI_NUM_SILOS != ALTO) AND NUM_SILOS_OBJ == ALTO AND SCORE_DISPARO == ALTO THEN DISPARO
+		// IF NUM_MISSILES == ALTO AND !BAJO_ATAQUE AND POBLACION_OBJ == ALTA
+		// AND (MI_POBLACION != ALTA OR MI_NUM_SILOS != ALTO) AND NUM_SILOS_OBJ
+		// == ALTO AND SCORE_DISPARO == ALTO THEN DISPARO
 		Rule rule3 = new Rule("Rule3", ruleBlock);
 		RuleTerm term1rule3 = new RuleTerm(numMisiles, "Alto", false);
 		RuleTerm term2rule3 = new RuleTerm(bajoAtaque, "No Ataque", false);
@@ -325,7 +371,8 @@ public class PlayerController {
 		RuleTerm term8rule3 = new RuleTerm(scoreDisparo, "Alto", false);
 		RuleExpression antecedenteAnd31 = new RuleExpression(term1rule3, term2rule3, RuleConnectionMethodAndMin.get());
 		RuleExpression antecedenteOr31 = new RuleExpression(term4rule3, term7rule3, RuleConnectionMethodOrMax.get());
-		RuleExpression antecedenteAnd32 = new RuleExpression(antecedenteAnd31, antecedenteOr31, RuleConnectionMethodAndMin.get());
+		RuleExpression antecedenteAnd32 = new RuleExpression(antecedenteAnd31, antecedenteOr31,
+				RuleConnectionMethodAndMin.get());
 		RuleExpression antecedenteAnd33 = new RuleExpression(antecedenteAnd32, term4rule3,
 				RuleConnectionMethodAndMin.get());
 		RuleExpression antecedenteAnd34 = new RuleExpression(antecedenteAnd33, term5rule3,
@@ -337,7 +384,9 @@ public class PlayerController {
 		rule3.setWeight(this.weights[2]);
 		ruleBlock.add(rule3);
 
-		// IF NUM_MISSILES == ALTO AND !BAJO_ATAQUE AND POBLACION_OBJ == ALTA AND MI_POBLACION == ALTA AND NUM_SILOS_OBJ == ALTO AND MI_NUM_SILOS == ALTO THEN NO_DISPARO
+		// IF NUM_MISSILES == ALTO AND !BAJO_ATAQUE AND POBLACION_OBJ == ALTA
+		// AND MI_POBLACION == ALTA AND NUM_SILOS_OBJ == ALTO AND MI_NUM_SILOS
+		// == ALTO THEN NO_DISPARO
 		Rule rule4 = new Rule("Rule4", ruleBlock);
 		RuleTerm term1rule4 = new RuleTerm(numMisiles, "Alto", false);
 		RuleTerm term2rule4 = new RuleTerm(bajoAtaque, "No Ataque", false);
@@ -359,7 +408,9 @@ public class PlayerController {
 		rule4.setWeight(this.weights[3]);
 		ruleBlock.add(rule4);
 
-		// IF NUM_MISSILES == BAJO AND BAJO_ATAQUE AND POBLACION_OBJ == ALTA AND MI_POB == BAJA AND MI_NUM_SILOS == BAJO AND NUM_SILOS_OBJ == ALTO AND SCORE_DISPARO == ALTO THEN DISPARO
+		// IF NUM_MISSILES == BAJO AND BAJO_ATAQUE AND POBLACION_OBJ == ALTA AND
+		// MI_POB == BAJA AND MI_NUM_SILOS == BAJO AND NUM_SILOS_OBJ == ALTO AND
+		// SCORE_DISPARO == ALTO THEN DISPARO
 		Rule rule5 = new Rule("Rule5", ruleBlock);
 		RuleTerm term1rule5 = new RuleTerm(numMisiles, "Bajo", false);
 		RuleTerm term2rule5 = new RuleTerm(bajoAtaque, "Ataque", false);
@@ -384,7 +435,9 @@ public class PlayerController {
 		rule5.setWeight(this.weights[4]);
 		ruleBlock.add(rule5);
 
-		// IF NUM_MISSILES == ALTO AND !BAJO_ATAQUE AND MI_POBLACION == ALTA AND NUM_SILOS_OBJ == ALTO AND MI_NUM_SILOS == ALTO  AND SCORE_DISPARO == ALTO THEN DISPARO
+		// IF NUM_MISSILES == ALTO AND !BAJO_ATAQUE AND MI_POBLACION == ALTA AND
+		// NUM_SILOS_OBJ == ALTO AND MI_NUM_SILOS == ALTO AND SCORE_DISPARO ==
+		// ALTO THEN DISPARO
 		Rule rule6 = new Rule("Rule6", ruleBlock);
 		RuleTerm term1rule6 = new RuleTerm(numMisiles, "Alto", false);
 		RuleTerm term2rule6 = new RuleTerm(bajoAtaque, "No Ataque", false);
@@ -406,7 +459,9 @@ public class PlayerController {
 		rule6.setWeight(this.weights[5]);
 		ruleBlock.add(rule6);
 
-		// IF NUM_MISSILES == ALTO AND BAJO_ATAQUE AND POBLACION_OBJ != BAJA AND MI_POBLACION != BAJA  AND NUM_SILOS_OBJ != BAJO AND MI_NUM_SILOS == ALTO AND SCORE_DISPARO == ALTO THEN DISPARO
+		// IF NUM_MISSILES == ALTO AND BAJO_ATAQUE AND POBLACION_OBJ != BAJA AND
+		// MI_POBLACION != BAJA AND NUM_SILOS_OBJ != BAJO AND MI_NUM_SILOS ==
+		// ALTO AND SCORE_DISPARO == ALTO THEN DISPARO
 		Rule rule7 = new Rule("Rule7", ruleBlock);
 		RuleTerm term1rule7 = new RuleTerm(numMisiles, "Alto", false);
 		RuleTerm term2rule7 = new RuleTerm(bajoAtaque, "Ataque", false);
@@ -431,7 +486,8 @@ public class PlayerController {
 		rule7.setWeight(this.weights[6]);
 		ruleBlock.add(rule7);
 
-		// IF NUM_MISSILES != ALTO AND !ATAQUE AND POBLACION_OBJ != ALTA AND NUM_SILOS_OBJ != ALTO SCORE !=ALTO THEN NO_DISPARO
+		// IF NUM_MISSILES != ALTO AND !ATAQUE AND POBLACION_OBJ != ALTA AND
+		// NUM_SILOS_OBJ != ALTO SCORE !=ALTO THEN NO_DISPARO
 		Rule rule8 = new Rule("Rule8", ruleBlock);
 		RuleTerm term1rule8 = new RuleTerm(numMisiles, "Alto", true);
 		RuleTerm term2rule8 = new RuleTerm(bajoAtaque, "No Ataque", false);
@@ -450,7 +506,9 @@ public class PlayerController {
 		rule8.setWeight(this.weights[7]);
 		ruleBlock.add(rule8);
 
-		// IF NUM_MISILES == BAJO AND BAJO_ATAQUE AND POBLACION_OBJ == ALTA AND MI_POBLACION != ALTA AND MI_NUM_SILOS != ALTO AND SCORE_DISPARO == ALTO THEN DISPARO
+		// IF NUM_MISILES == BAJO AND BAJO_ATAQUE AND POBLACION_OBJ == ALTA AND
+		// MI_POBLACION != ALTA AND MI_NUM_SILOS != ALTO AND SCORE_DISPARO ==
+		// ALTO THEN DISPARO
 		Rule rule9 = new Rule("Rule9", ruleBlock);
 		RuleTerm term1rule9 = new RuleTerm(numMisiles, "Bajo", false);
 		RuleTerm term2rule9 = new RuleTerm(bajoAtaque, "Ataque", false);
@@ -472,7 +530,9 @@ public class PlayerController {
 		rule9.setWeight(this.weights[8]);
 		ruleBlock.add(rule9);
 
-		// IF NUM_MISSILES == ALTO AND BAJO_ATAQUE AND POBLACION_OBJ == ALTA AND MI_POBLACION == ALTA AND NUM_SILOS_OBJ == MEDIO AND MI_NUM_SILOS == MEDIO AND SCORE_DISPARO == ALTO THEN DISPARO
+		// IF NUM_MISSILES == ALTO AND BAJO_ATAQUE AND POBLACION_OBJ == ALTA AND
+		// MI_POBLACION == ALTA AND NUM_SILOS_OBJ == MEDIO AND MI_NUM_SILOS ==
+		// MEDIO AND SCORE_DISPARO == ALTO THEN DISPARO
 		Rule rule10 = new Rule("Rule10", ruleBlock);
 		RuleTerm term1rule10 = new RuleTerm(numMisiles, "Alto", false);
 		RuleTerm term2rule10 = new RuleTerm(bajoAtaque, "Ataque", false);
@@ -497,8 +557,10 @@ public class PlayerController {
 		rule10.addConsequent(efectuarDisp, "Si", false);
 		rule10.setWeight(this.weights[9]);
 		ruleBlock.add(rule10);
-		
-		// IF NUM_MISSILES != ALTO AND !BAJO_ATAQUE AND SCORE_DISPARO != ALTO AND MI_POBLACION != BAJA AND MI_NUM_SILOS != BAJO AND POBLACION_OBJ == BAJA AND NUM_SILOS_OBJ == BAJO THEN NO_DISPARO
+
+		// IF NUM_MISSILES != ALTO AND !BAJO_ATAQUE AND SCORE_DISPARO != ALTO
+		// AND MI_POBLACION != BAJA AND MI_NUM_SILOS != BAJO AND POBLACION_OBJ
+		// == BAJA AND NUM_SILOS_OBJ == BAJO THEN NO_DISPARO
 		Rule rule11 = new Rule("Rule11", ruleBlock);
 		RuleTerm term1rule11 = new RuleTerm(numMisiles, "Alto", true);
 		RuleTerm term2rule11 = new RuleTerm(bajoAtaque, "No Ataque", false);
@@ -507,52 +569,68 @@ public class PlayerController {
 		RuleTerm term5rule11 = new RuleTerm(miNumSilos, "Bajo", true);
 		RuleTerm term6rule11 = new RuleTerm(poblacionObj, "Baja", false);
 		RuleTerm term7rule11 = new RuleTerm(numSilosObj, "Alto", false);
-		RuleExpression antecedenteAnd111 = new RuleExpression(term1rule11, term2rule11, RuleConnectionMethodAndMin.get());
-		RuleExpression antecedenteAnd112 = new RuleExpression(antecedenteAnd111,term3rule11, RuleConnectionMethodAndMin.get());
-		RuleExpression antecedenteAnd113 = new RuleExpression(antecedenteAnd112, term4rule11, RuleConnectionMethodAndMin.get());
-		RuleExpression antecedenteAnd114 = new RuleExpression(antecedenteAnd113, term5rule11, RuleConnectionMethodAndMin.get());
-		RuleExpression antecedenteAnd115 = new RuleExpression(antecedenteAnd114, term6rule11, RuleConnectionMethodAndMin.get());
-		RuleExpression antecedenteAnd116 = new RuleExpression(antecedenteAnd115, term7rule11, RuleConnectionMethodAndMin.get());
+		RuleExpression antecedenteAnd111 = new RuleExpression(term1rule11, term2rule11,
+				RuleConnectionMethodAndMin.get());
+		RuleExpression antecedenteAnd112 = new RuleExpression(antecedenteAnd111, term3rule11,
+				RuleConnectionMethodAndMin.get());
+		RuleExpression antecedenteAnd113 = new RuleExpression(antecedenteAnd112, term4rule11,
+				RuleConnectionMethodAndMin.get());
+		RuleExpression antecedenteAnd114 = new RuleExpression(antecedenteAnd113, term5rule11,
+				RuleConnectionMethodAndMin.get());
+		RuleExpression antecedenteAnd115 = new RuleExpression(antecedenteAnd114, term6rule11,
+				RuleConnectionMethodAndMin.get());
+		RuleExpression antecedenteAnd116 = new RuleExpression(antecedenteAnd115, term7rule11,
+				RuleConnectionMethodAndMin.get());
 		rule11.setAntecedents(antecedenteAnd116);
 		rule11.addConsequent(efectuarDisp, "No", false);
 		rule11.setWeight(this.weights[10]);
 		ruleBlock.add(rule11);
-		
+
 		// IF NUM_MISSILES != BAJO AND SCORE_DISPARO == ALTO THEN DISPARO
 		Rule rule12 = new Rule("rule12", ruleBlock);
 		RuleTerm term1rule12 = new RuleTerm(numMisiles, "Bajo", true);
 		RuleTerm term2rule12 = new RuleTerm(scoreDisparo, "Alto", false);
-		RuleExpression antecedentAnd121 = new RuleExpression(term1rule12, term2rule12, RuleConnectionMethodAndMin.get());
+		RuleExpression antecedentAnd121 = new RuleExpression(term1rule12, term2rule12,
+				RuleConnectionMethodAndMin.get());
 		rule12.setAntecedents(antecedentAnd121);
 		rule12.addConsequent(efectuarDisp, "Si", false);
 		rule12.setWeight(this.weights[11]);
 		ruleBlock.add(rule12);
-		
-		// Estas reglas son para cuando el jugador va perdiendo. De esta forma se vuelve más agresivo
-		
-		// IF (MI_POBLACION != ALTA AND POBLACION_OBJ == ALTA) OR  (MI_POBLACION == BAJA AND POBLACION_OBJ != BAJA) THEN DISPARO
+
+		// Estas reglas son para cuando el jugador va perdiendo. De esta forma
+		// se vuelve más agresivo
+
+		// IF (MI_POBLACION != ALTA AND POBLACION_OBJ == ALTA) OR (MI_POBLACION
+		// == BAJA AND POBLACION_OBJ != BAJA) THEN DISPARO
 		Rule rule13 = new Rule("rule13", ruleBlock);
 		RuleTerm term1rule13 = new RuleTerm(miPoblacion, "Alta", true);
 		RuleTerm term2rule13 = new RuleTerm(miPoblacion, "Baja", false);
 		RuleTerm term3rule13 = new RuleTerm(poblacionObj, "Alta", false);
 		RuleTerm term4rule13 = new RuleTerm(poblacionObj, "Baja", true);
-		RuleExpression antecedentAnd131 = new RuleExpression(term1rule13, term3rule13, RuleConnectionMethodAndMin.get());
-		RuleExpression antecedentAnd132 = new RuleExpression(term2rule13, term4rule13, RuleConnectionMethodAndMin.get());
-		RuleExpression antecedentOr131 = new RuleExpression(antecedentAnd131, antecedentAnd132, RuleConnectionMethodOrMax.get());
+		RuleExpression antecedentAnd131 = new RuleExpression(term1rule13, term3rule13,
+				RuleConnectionMethodAndMin.get());
+		RuleExpression antecedentAnd132 = new RuleExpression(term2rule13, term4rule13,
+				RuleConnectionMethodAndMin.get());
+		RuleExpression antecedentOr131 = new RuleExpression(antecedentAnd131, antecedentAnd132,
+				RuleConnectionMethodOrMax.get());
 		rule13.setAntecedents(antecedentOr131);
 		rule13.addConsequent(efectuarDisp, "Si", false);
 		rule13.setWeight(this.weights[12]);
 		ruleBlock.add(rule13);
-		
-		// IF (MI_NUM_SILOS != ALTO AND NUM_SILOS_OBJ == ALTO) OR (MI_NUM_SILOS == BAJO AND NUM_SILOS_OBJ != BAJO) THEN DISPARO
+
+		// IF (MI_NUM_SILOS != ALTO AND NUM_SILOS_OBJ == ALTO) OR (MI_NUM_SILOS
+		// == BAJO AND NUM_SILOS_OBJ != BAJO) THEN DISPARO
 		Rule rule14 = new Rule("rule14", ruleBlock);
 		RuleTerm term1rule14 = new RuleTerm(miNumSilos, "Alto", true);
 		RuleTerm term2rule14 = new RuleTerm(miNumSilos, "Bajo", false);
 		RuleTerm term3rule14 = new RuleTerm(numSilosObj, "Alto", false);
 		RuleTerm term4rule14 = new RuleTerm(numSilosObj, "Bajo", true);
-		RuleExpression antecedentAnd141 = new RuleExpression(term1rule14, term3rule14, RuleConnectionMethodAndMin.get());
-		RuleExpression antecedentAnd142 = new RuleExpression(term2rule14, term4rule14, RuleConnectionMethodAndMin.get());
-		RuleExpression antecedentOr141 = new RuleExpression(antecedentAnd141, antecedentAnd142, RuleConnectionMethodOrMax.get());
+		RuleExpression antecedentAnd141 = new RuleExpression(term1rule14, term3rule14,
+				RuleConnectionMethodAndMin.get());
+		RuleExpression antecedentAnd142 = new RuleExpression(term2rule14, term4rule14,
+				RuleConnectionMethodAndMin.get());
+		RuleExpression antecedentOr141 = new RuleExpression(antecedentAnd141, antecedentAnd142,
+				RuleConnectionMethodOrMax.get());
 		rule14.setAntecedents(antecedentOr141);
 		rule14.addConsequent(efectuarDisp, "Si", false);
 		rule14.setWeight(this.weights[13]);
@@ -565,8 +643,8 @@ public class PlayerController {
 		fis.getVariable("numMisiles").setValue(this.getNumMissiles());
 		fis.getVariable("bajoAtaque").setValue(this.game.underAttack(this) ? 1 : 0);
 		fis.getVariable("miPoblacion").setValue(this.getPopulation());
-		fis.getVariable("poblacionObj").setValue(opponentPopulation);
-		fis.getVariable("numSilosObj").setValue(opponentSilos);
+		fis.getVariable("poblacionObj").setValue(opponentPopulation.doubleValue());
+		fis.getVariable("numSilosObj").setValue(opponentSilos.doubleValue());
 		fis.getVariable("miNumSilos").setValue(this.getNumSilos());
 		fis.getVariable("score").setValue(mov.getScore());
 		fis.evaluate();
@@ -574,7 +652,7 @@ public class PlayerController {
 		return fis.getVariable("efectuarDisp").getMembership("Si") > 0;
 	}
 
-	public double CBCJ() {
+	public double CBCJ(Silo silo, MapLocation[] opponentLocations) {
 
 		FIS fis = new FIS();
 
@@ -585,10 +663,8 @@ public class PlayerController {
 
 		// Variables de entrada para el controlador borroso de carga del silo
 
-		Variable numMisiles = new Variable("numMisiles"); // numero de misiles
-															// del silo
-		Variable distanciaObj = new Variable("distanciaObj"); // distancia al
-																// objetivo
+		Variable numMisiles = new Variable("numMisiles");
+		Variable distanciaObj = new Variable("distanciaObj");
 		functionBlock.setVariable(numMisiles.getName(), numMisiles);
 		functionBlock.setVariable(distanciaObj.getName(), distanciaObj);
 
@@ -602,12 +678,16 @@ public class PlayerController {
 		 * Miembros funcionales para la variable de entrada numMisiles(numero de
 		 * misiles)
 		 */
+		double mediaMisilesJugador = this.getNumMissiles() / this.getNumSilos();
+		Value[] missilesAltoX = { new Value(mediaMisilesJugador), new Value(GameController.MAX_MISSILE_PLAYER) };
+		Value[] missilesAltoY = { new Value(0), new Value(1) };
+		MembershipFunction numMisilAlto = new MembershipFunctionPieceWiseLinear(missilesAltoX, missilesAltoY);
+		MembershipFunction numMisilMedio = new MembershipFunctionTriangular(new Value(mediaMisilesJugador - 1),
+				new Value(mediaMisilesJugador), new Value(mediaMisilesJugador + 1));
 
-		MembershipFunction numMisilAlto = new MembershipFunctionSingleton(new Value(5));
-
-		MembershipFunction numMisilMedio = new MembershipFunctionTriangular(new Value(2), new Value(3), new Value(4));
-
-		MembershipFunction numMisilBajo = new MembershipFunctionSingleton(new Value(0), new Value(1));
+		Value[] missilesBajoX = { new Value(0), new Value(mediaMisilesJugador) };
+		Value[] missilesBajoY = { new Value(1), new Value(0) };
+		MembershipFunction numMisilBajo = new MembershipFunctionPieceWiseLinear(missilesBajoX, missilesBajoY);
 
 		LinguisticTerm ltmnumMisilesAlto = new LinguisticTerm("Alto", numMisilAlto);
 		LinguisticTerm ltmnumMisilesMedio = new LinguisticTerm("Medio", numMisilMedio);
@@ -618,16 +698,17 @@ public class PlayerController {
 
 		/*
 		 * Miembros funcionales para la variable de entrada
-		 * distanciaObj(distancia al objetivo)
+		 * distanciaObj(distancia media a los silos contrarios)
 		 */
 
-		Value distLargaX[] = { new Value(50), new Value(60) };
+		Value distLargaX[] = { new Value(GameController.MAX_DISTANCE / 2), new Value(GameController.MAX_DISTANCE) };
 		Value distLargaY[] = { new Value(0), new Value(1) };
 		MembershipFunction dLarga = new MembershipFunctionPieceWiseLinear(distLargaX, distLargaY);
 
-		MembershipFunction dMedia = new MembershipFunctionTriangular(new Value(30), new Value(40), new Value(45));
+		MembershipFunction dMedia = new MembershipFunctionTriangular(new Value(GameController.MAX_DISTANCE / 3),
+				new Value(GameController.MAX_DISTANCE / 2), new Value(GameController.MAX_DISTANCE * 2 / 3));
 
-		Value distCortaX[] = { new Value(10), new Value(20) };
+		Value distCortaX[] = { new Value(0), new Value(GameController.MAX_DISTANCE / 2) };
 		Value distCortaY[] = { new Value(1), new Value(0) };
 		MembershipFunction dCorta = new MembershipFunctionPieceWiseLinear(distCortaX, distCortaY);
 
@@ -643,13 +724,19 @@ public class PlayerController {
 		 * cargar el silo o no)
 		 */
 
-		MembershipFunction cValida = new MembershipFunctionSingleton(new Value(1));
-		MembershipFunction cNoValida = new MembershipFunctionSingleton(new Value(0));
+		Value[] cargaSi = { new Value(50), new Value(100) };
+		Value[] cargaSiY = { new Value(0), new Value(1) };
+		MembershipFunction cValida = new MembershipFunctionPieceWiseLinear(cargaSi, cargaSiY);
+		Value[] cargaNo = { new Value(0), new Value(50) };
+		Value[] cargaNoY = { new Value(1), new Value(0) };
+		MembershipFunction cNoValida = new MembershipFunctionPieceWiseLinear(cargaNo, cargaNoY);
 
 		LinguisticTerm ltcValida = new LinguisticTerm("Si", cValida);
 		LinguisticTerm ltcNoValida = new LinguisticTerm("No", cNoValida);
 		carga.add(ltcValida);
 		carga.add(ltcNoValida);
+
+		carga.setDefuzzifier(new DefuzzifierCenterOfGravity(carga));
 
 		// Bloque de reglas
 
@@ -658,103 +745,96 @@ public class PlayerController {
 		ruleBlock.setRuleAccumulationMethod(new RuleAccumulationMethodMax());
 		ruleBlock.setRuleActivationMethod(new RuleActivationMethodMin());
 
-		// IF numMisiles IS Alto AND distObj IS Larga then carga IS false
+		// IF numMisiles IS Alto AND distObj NOT IS Larga then carga IS false
 
 		Rule rule1 = new Rule("Rule1", ruleBlock);
 		RuleTerm term1rule1 = new RuleTerm(numMisiles, "Alto", false);
-		RuleTerm term2rule1 = new RuleTerm(distanciaObj, "Larga", false);
+		RuleTerm term2rule1 = new RuleTerm(distanciaObj, "Larga", true);
 		RuleExpression antecedenteAnd1 = new RuleExpression(term1rule1, term2rule1, RuleConnectionMethodAndMin.get());
 		rule1.setAntecedents(antecedenteAnd1);
 		rule1.addConsequent(carga, "No", false);
+		rule1.setWeight(this.weights[14]);
 		ruleBlock.add(rule1);
 
-		// IF numMisiles IS Alto AND distObj IS Media then carga IS false
+		// IF numMisiles IS Alto AND distObj IS Larga then carga IS true
 
 		Rule rule2 = new Rule("Rule2", ruleBlock);
 		RuleTerm term1rule2 = new RuleTerm(numMisiles, "Alto", false);
-		RuleTerm term2rule2 = new RuleTerm(distanciaObj, "Media", false);
+		RuleTerm term2rule2 = new RuleTerm(distanciaObj, "Larga", false);
 		RuleExpression antecedenteAnd2 = new RuleExpression(term1rule2, term2rule2, RuleConnectionMethodAndMin.get());
 		rule2.setAntecedents(antecedenteAnd2);
-		rule2.addConsequent(carga, "No", false);
+		rule2.addConsequent(carga, "Si", false);
+		rule2.setWeight(this.weights[15]);
 		ruleBlock.add(rule2);
 
-		// IF numMisiles IS Alto AND distObj IS Corta then carga IS true
+		// IF numMisiles IS Medio AND distObj IS Media then carga IS true
 
 		Rule rule3 = new Rule("Rule3", ruleBlock);
-		RuleTerm term1rule3 = new RuleTerm(numMisiles, "Alto", false);
-		RuleTerm term2rule3 = new RuleTerm(distanciaObj, "Corta", false);
+		RuleTerm term1rule3 = new RuleTerm(numMisiles, "Medio", false);
+		RuleTerm term2rule3 = new RuleTerm(distanciaObj, "Media", false);
 		RuleExpression antecedenteAnd3 = new RuleExpression(term1rule3, term2rule3, RuleConnectionMethodAndMin.get());
 		rule3.setAntecedents(antecedenteAnd3);
 		rule3.addConsequent(carga, "Si", false);
+		rule3.setWeight(this.weights[16]);
 		ruleBlock.add(rule3);
 
-		// IF numMisiles IS Medio AND distObj IS Larga then carga IS false
+		// IF numMisiles IS Medio AND distObj IS Corta then carga IS false
 
 		Rule rule4 = new Rule("Rule4", ruleBlock);
 		RuleTerm term1rule4 = new RuleTerm(numMisiles, "Medio", false);
-		RuleTerm term2rule4 = new RuleTerm(distanciaObj, "Larga", false);
+		RuleTerm term2rule4 = new RuleTerm(distanciaObj, "Corta", false);
 		RuleExpression antecedenteAnd4 = new RuleExpression(term1rule4, term2rule4, RuleConnectionMethodAndMin.get());
 		rule4.setAntecedents(antecedenteAnd4);
 		rule4.addConsequent(carga, "No", false);
+		rule4.setWeight(this.weights[17]);
 		ruleBlock.add(rule4);
 
-		// IF numMisiles IS Medio AND distObj IS Media then carga IS false
+		// IF numMisiles IS Bajo AND distObj IS Larga then carga IS true
 
 		Rule rule5 = new Rule("Rule5", ruleBlock);
-		RuleTerm term1rule5 = new RuleTerm(numMisiles, "Medio", false);
-		RuleTerm term2rule5 = new RuleTerm(distanciaObj, "Media", false);
+		RuleTerm term1rule5 = new RuleTerm(numMisiles, "Bajo", false);
+		RuleTerm term2rule5 = new RuleTerm(distanciaObj, "Larga", false);
 		RuleExpression antecedenteAnd5 = new RuleExpression(term1rule5, term2rule5, RuleConnectionMethodAndMin.get());
 		rule5.setAntecedents(antecedenteAnd5);
-		rule5.addConsequent(carga, "No", false);
+		rule5.addConsequent(carga, "Si", false);
+		rule5.setWeight(this.weights[18]);
 		ruleBlock.add(rule5);
 
-		// IF numMisiles IS Medio AND distObj IS Corta then carga IS true
+		// IF numMisiles IS Bajo AND distObj IS Media then carga IS true
 
 		Rule rule6 = new Rule("Rule6", ruleBlock);
-		RuleTerm term1rule6 = new RuleTerm(numMisiles, "Medio", false);
-		RuleTerm term2rule6 = new RuleTerm(distanciaObj, "Corta", false);
+		RuleTerm term1rule6 = new RuleTerm(numMisiles, "Bajo", false);
+		RuleTerm term2rule6 = new RuleTerm(distanciaObj, "Media", false);
 		RuleExpression antecedenteAnd6 = new RuleExpression(term1rule6, term2rule6, RuleConnectionMethodAndMin.get());
 		rule6.setAntecedents(antecedenteAnd6);
 		rule6.addConsequent(carga, "Si", false);
+		rule6.setWeight(this.weights[19]);
 		ruleBlock.add(rule6);
-
-		// IF numMisiles IS Bajo AND distObj IS Larga then carga IS false
-
-		Rule rule7 = new Rule("Rule7", ruleBlock);
-		RuleTerm term1rule7 = new RuleTerm(numMisiles, "Bajo", false);
-		RuleTerm term2rule7 = new RuleTerm(distanciaObj, "Larga", false);
-		RuleExpression antecedenteAnd7 = new RuleExpression(term1rule7, term2rule7, RuleConnectionMethodAndMin.get());
-		rule7.setAntecedents(antecedenteAnd7);
-		rule7.addConsequent(carga, "No", false);
-		ruleBlock.add(rule7);
-
-		// IF numMisiles IS Bajo AND distObj IS Media then carga IS false
-
-		Rule rule8 = new Rule("Rule8", ruleBlock);
-		RuleTerm term1rule8 = new RuleTerm(numMisiles, "Bajo", false);
-		RuleTerm term2rule8 = new RuleTerm(distanciaObj, "Media", false);
-		RuleExpression antecedenteAnd8 = new RuleExpression(term1rule8, term2rule8, RuleConnectionMethodAndMin.get());
-		rule8.setAntecedents(antecedenteAnd8);
-		rule8.addConsequent(carga, "No", false);
-		ruleBlock.add(rule8);
 
 		// IF numMisiles IS Bajo AND distObj IS Corta then carga IS true
 
-		Rule rule9 = new Rule("Rule9", ruleBlock);
-		RuleTerm term1rule9 = new RuleTerm(numMisiles, "Bajo", false);
-		RuleTerm term2rule9 = new RuleTerm(distanciaObj, "Corta", false);
-		RuleExpression antecedenteAnd9 = new RuleExpression(term1rule9, term2rule9, RuleConnectionMethodAndMin.get());
-		rule9.setAntecedents(antecedenteAnd9);
-		rule9.addConsequent(carga, "Si", false);
-		ruleBlock.add(rule9);
+		Rule rule7 = new Rule("Rule7", ruleBlock);
+		RuleTerm term1rule7 = new RuleTerm(numMisiles, "Bajo", false);
+		RuleTerm term2rule7 = new RuleTerm(distanciaObj, "Corta", false);
+		RuleExpression antecedenteAnd7 = new RuleExpression(term1rule7, term2rule7, RuleConnectionMethodAndMin.get());
+		rule7.setAntecedents(antecedenteAnd7);
+		rule7.addConsequent(carga, "Si", false);
+		rule7.setWeight(this.weights[20]);
+		ruleBlock.add(rule7);
+
+		// IF distanciaObj IS Corta then carga IS False
+		Rule rule8 = new Rule("Rule8", ruleBlock);
+		rule8.addAntecedent(distanciaObj, "Corta", false);
+		rule8.addConsequent(carga, "No", false);
+		rule8.setWeight(this.weights[21]);
+		ruleBlock.add(rule8);
 
 		HashMap<String, RuleBlock> ruleBlocksMap = new HashMap<String, RuleBlock>();
 		ruleBlocksMap.put(ruleBlock.getName(), ruleBlock);
 		functionBlock.setRuleBlocks(ruleBlocksMap);
 
-		fis.getVariable("numMisiles").setValue(1);
-		fis.getVariable("distanciaObj").setValue(20);
-		fis.getVariable("carga").setValue(0);
+		fis.getVariable("numMisiles").setValue(silo.getNumMissiles());
+		fis.getVariable("distanciaObj").setValue(silo.getAverageDistanceToSilos(opponentLocations));
 		fis.evaluate();
 
 		return fis.getVariable("carga").getValue();

@@ -32,6 +32,10 @@ public class GameController {
 			+ (NUM_CITIES * City.CITY_POPULATION)
 			+ (((MAP_WIDTH * MAP_HEIGHT) - (NUM_SILOS + NUM_CITIES)) * Forest.FOREST_POPULATION);
 	public static final Integer MAX_MISSILE_PLAYER = NUM_SILOS * Silo.MAX_MISSILES;
+	
+	
+	private static final Integer PLAYER_WEIGHTS_QTY = 22;
+	private static final Integer SILO_WEIGHTS_QTY = 5;
 
 	PlayerController player1, player2;
 	HashMap<PlayerController, List<PlayerMovement>> movementList = new HashMap<>();
@@ -60,10 +64,11 @@ public class GameController {
 	 */
 	public void startGame() {
 		for (int i = 0; i < NUM_ROUNDS; i++) {
+			System.out.println("Ataques player1");
 			this.resolveMovements(this.movementList.get(player1));
 			this.player1.recharge(MISSILE_PER_ROUND, this.player2.getPlayerLocations());
 			this.movementList.get(player1).addAll(this.player1.resolveMovement(this.player2.getPlayerLocations()));
-
+			System.out.println("Ataques player2");
 			this.resolveMovements(this.movementList.get(player2));
 			this.player2.recharge(MISSILE_PER_ROUND, this.player1.getPlayerLocations());
 			this.movementList.get(player2).addAll(this.player2.resolveMovement(this.player1.getPlayerLocations()));
@@ -82,14 +87,16 @@ public class GameController {
 
 	public void resolveMovements(List<PlayerMovement> movs) {
 		Random rand = new Random();
-		for (int i = 0; i < movs.size(); i++) {
-			double failProb = this.getFailProb(movs.get(i).getFrom(), movs.get(i).getTo());
+		for (PlayerMovement mov : movs) {
+			System.out.println("Ataque desde coordenadas " + mov.getFrom().getX() + "," + mov.getFrom().getY() + " a localizacion " + mov.getTo().getX() + "," + mov.getTo().getY() + " con poblacion " + mov.getTo().getPopulation());
+			double failProb = this.getFailProb(mov.getFrom(), mov.getTo());
 			double num = rand.nextInt(100);
 			if (num > failProb) {
-				movs.get(i).getTo().destroyLocation();
+				System.out.println("Disparo acertado");
+				mov.getTo().destroyLocation();
 			}
-			movs.remove(i);
 		}
+		movs.clear();
 	}
 
 	/**
@@ -117,7 +124,7 @@ public class GameController {
 	}
 
 	private MapLocation[] generateMap() {
-		Random rand = new Random();
+		Random rand = new Random();		
 		MapLocation[][] map = new MapLocation[MAP_WIDTH][MAP_HEIGHT];
 		for (int i = 0; i < NUM_SILOS; i++) {
 			int x = 0;
@@ -126,7 +133,7 @@ public class GameController {
 				x = rand.nextInt(MAP_WIDTH);
 				y = rand.nextInt(MAP_HEIGHT);
 			} while (map[x][y] != null);
-			map[x][y] = new Silo(x, y, this.player1Weights);
+			map[x][y] = new Silo(x, y, this.getSiloWeights(this.player1Weights));
 		}
 
 		for (int i = 0; i < NUM_CITIES; i++) {
@@ -157,7 +164,7 @@ public class GameController {
 		MapLocation[] returnMap = new MapLocation[map.length];
 		for (int i = 0; i < map.length; i++) {
 			if (map[i].getClass().equals(Silo.class)) {
-				returnMap[i] = new Silo((MAP_WIDTH * 2) - map[i].getX(), map[i].getY(), this.player2Weights);
+				returnMap[i] = new Silo((MAP_WIDTH * 2) - map[i].getX(), map[i].getY(), this.getSiloWeights(this.player2Weights));
 			} else if (map[i].getClass().equals(City.class)) {
 				returnMap[i] = new City((MAP_WIDTH * 2) - map[i].getX(), map[i].getY());
 			} else {
@@ -165,6 +172,12 @@ public class GameController {
 			}
 		}
 		return returnMap;
+	}
+	
+	private double[] getSiloWeights(double[] allWeights){
+		double[] siloWeights = new double[SILO_WEIGHTS_QTY];
+		System.arraycopy(allWeights, PLAYER_WEIGHTS_QTY, siloWeights, 0, SILO_WEIGHTS_QTY);
+		return siloWeights;
 	}
 
 }

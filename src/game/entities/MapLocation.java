@@ -64,7 +64,7 @@ public abstract class MapLocation {
 		Integer population = 0;
 		for (MapLocation loc : map) {
 			if (!loc.destroyed) {
-				population = loc.getPopulation();
+				population += loc.getPopulation();
 			}
 		}
 		return population;
