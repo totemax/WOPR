@@ -1,6 +1,7 @@
 package game;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -10,28 +11,31 @@ import game.entities.MapLocation;
 import game.entities.PlayerMovement;
 import game.entities.Silo;
 
-public class GameController{
-	
+public class GameController {
+
 	private static final Integer NUM_ROUNDS = 6; // Numero de turnos por
 													// partida.
-	private static final Integer NUM_SILOS = 6; // Numero de silos por jugador.
-	private static final Integer NUM_CITIES = 6; // Numero de ciudades por
-													// jugador.
+	public static final Integer NUM_SILOS = 6; // Numero de silos por jugador.
+	public static final Integer NUM_CITIES = 6; // Numero de ciudades por
+												// jugador.
 	public static final Integer MAP_WIDTH = 6; // Ancho del mapa por cada
 												// jugador.
 	public static final Integer MAP_HEIGHT = 6; // Altura del mapa por cada
-													// jugador.
-	
+												// jugador.
+
 	public static final double MAX_DISTANCE = Math.sqrt(Math.pow((MAP_WIDTH * 2), 2) + Math.pow((MAP_HEIGHT * 2), 2));
 
-	private static final Integer INITIAL_MISSILES = (MAP_WIDTH * MAP_HEIGHT) / 10;
 	private static final Integer MISSILE_PER_ROUND = 3;
 	private static final double FAIL_MOD = 5;
 	private static final Integer MAX_FAIL_PROB = 60;
+	public static final Integer MAX_POPULATION_PLAYER = (NUM_SILOS * Silo.SILO_POPULATION)
+			+ (NUM_CITIES * City.CITY_POPULATION)
+			+ (((MAP_WIDTH * MAP_HEIGHT) - (NUM_SILOS + NUM_CITIES)) * Forest.FOREST_POPULATION);
+	public static final Integer MAX_MISSILE_PLAYER = NUM_SILOS * Silo.MAX_MISSILES;
 
 	PlayerController player1, player2;
-	List<PlayerMovement> player1Movements = new ArrayList<>();
-	List<PlayerMovement> player2Movements = new ArrayList<>();
+	HashMap<PlayerController, List<PlayerMovement>> movementList = new HashMap<>();
+
 	double[] player1Weights, player2Weights;
 
 	/**
@@ -45,8 +49,10 @@ public class GameController{
 		this.player2Weights = player2Weights;
 		MapLocation[] player1Map = this.generateMap();
 		MapLocation[] player2Map = this.reflectMap(player1Map);
-		this.player1 = new PlayerController(player1Weights, player1Map);
-		this.player2 = new PlayerController(player2Weights, player2Map);
+		this.player1 = new PlayerController(player1Weights, player1Map, this);
+		this.player2 = new PlayerController(player2Weights, player2Map, this);
+		movementList.put(player1, new ArrayList<>());
+		movementList.put(player2, new ArrayList<>());
 	}
 
 	/**
@@ -54,27 +60,32 @@ public class GameController{
 	 */
 	public void startGame() {
 		for (int i = 0; i < NUM_ROUNDS; i++) {
-			this.resolveMovements(this.player1Movements);
-			this.resolveMovements(this.player2Movements);
+			this.resolveMovements(this.movementList.get(player1));
 			this.player1.recharge(MISSILE_PER_ROUND, this.player2.getPlayerLocations());
-			this.player1Movements.addAll(this.player1.resolveMovement(this.player2.getPlayerLocations()));
+			this.movementList.get(player1).addAll(this.player1.resolveMovement(this.player2.getPlayerLocations()));
+
+			this.resolveMovements(this.movementList.get(player2));
 			this.player2.recharge(MISSILE_PER_ROUND, this.player1.getPlayerLocations());
-			this.player2Movements.addAll(this.player2.resolveMovement(this.player1.getPlayerLocations()));
+			this.movementList.get(player2).addAll(this.player2.resolveMovement(this.player1.getPlayerLocations()));
 		}
 	}
 
-	public double getFailProb(MapLocation silo, MapLocation obj){
-		double distance = silo.distance(obj);
-		double failProb = distance * FAIL_MOD;
-		return  (failProb > MAX_FAIL_PROB) ? MAX_FAIL_PROB : failProb;
+	public boolean underAttack(PlayerController player) {
+		return this.movementList.get(player).size() > 0;
 	}
 
-	public void resolveMovements(List<PlayerMovement> movs){
+	public double getFailProb(MapLocation silo, MapLocation obj) {
+		double distance = silo.distance(obj);
+		double failProb = distance * FAIL_MOD;
+		return (failProb > MAX_FAIL_PROB) ? MAX_FAIL_PROB : failProb;
+	}
+
+	public void resolveMovements(List<PlayerMovement> movs) {
 		Random rand = new Random();
-		for(int i = 0; i < movs.size(); i++) {
+		for (int i = 0; i < movs.size(); i++) {
 			double failProb = this.getFailProb(movs.get(i).getFrom(), movs.get(i).getTo());
 			double num = rand.nextInt(100);
-			if (num > failProb){
+			if (num > failProb) {
 				movs.get(i).getTo().destroyLocation();
 			}
 			movs.remove(i);

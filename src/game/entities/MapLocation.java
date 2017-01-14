@@ -9,8 +9,7 @@ public abstract class MapLocation {
 	private Integer x; // X coords
 	private Integer y; // Y coords
 	protected Boolean destroyed = false; // Localizacion destruida
-	
-	
+
 	/**
 	 * Constructor.
 	 * 
@@ -30,35 +29,47 @@ public abstract class MapLocation {
 		this.population = 0;
 		this.destroyed = true;
 	}
-	
+
 	/**
 	 * Calculo de la distancia entre dos localizaciones.
-	 * @param otherLocation la otra localizacion
+	 * 
+	 * @param otherLocation
+	 *            la otra localizacion
 	 * @return distancia entre los dos puntos
 	 */
-	public double distance(MapLocation otherLocation){
+	public double distance(MapLocation otherLocation) {
 		int xDist = Math.abs(this.x - otherLocation.x);
 		int yDist = Math.abs(this.y - otherLocation.y);
-		
+
 		return Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
 	}
-	
+
 	public double getAverageDistanceToSilos(MapLocation[] locations) {
 		double distances = 0;
 		int numSilos = 0;
-		for(MapLocation loc: locations){
-			if (loc.getClass().equals(Silo.class) && !((Silo)loc).isDestroyed()){
-				distances += this.distance(loc);			
+		for (MapLocation loc : locations) {
+			if (loc.getClass().equals(Silo.class) && !((Silo) loc).isDestroyed()) {
+				distances += this.distance(loc);
 				numSilos++;
 			}
 		}
-		if (numSilos >0){
+		if (numSilos > 0) {
 			return distances / numSilos;
-		}else{
+		} else {
 			return Double.MAX_VALUE; // En caso de que no haya silos.
 		}
 	}
-	
+
+	public static Integer getMapPopulation(MapLocation[] map) {
+		Integer population = 0;
+		for (MapLocation loc : map) {
+			if (!loc.destroyed) {
+				population = loc.getPopulation();
+			}
+		}
+		return population;
+	}
+
 	/**
 	 * Indica si la localizacion ha sido destruida
 	 * 
@@ -67,16 +78,16 @@ public abstract class MapLocation {
 	public Boolean isDestroyed() {
 		return this.destroyed;
 	}
-	
-	public int getX(){
+
+	public int getX() {
 		return this.x;
 	}
-	
-	public int getY(){
+
+	public int getY() {
 		return this.y;
 	}
-	
-	public int getPopulation(){
+
+	public int getPopulation() {
 		return this.population;
 	}
 

@@ -30,7 +30,7 @@ public class Silo extends MapLocation {
 
 	public static final Integer SILO_POPULATION = 50; // Poblacion inicial del
 														// silo.
-	private static final Integer MAX_MISSILES = 6;
+	public static final Integer MAX_MISSILES = 6;
 
 	private Integer missiles = 0; // Misiles del silo
 	
@@ -71,9 +71,10 @@ public class Silo extends MapLocation {
 			for (Map.Entry<MapLocation, Double> entry : d.entrySet()){
 				if (val < entry.getValue()){
 					result = entry.getKey();
+					val = entry.getValue();
 				}
 			}			
-			return new PlayerMovement(this, result);
+			return new PlayerMovement(this, result, val);
 		}
 		
 
@@ -487,6 +488,16 @@ public class Silo extends MapLocation {
 		}
 		
 		return fis.getVariable("disparo").getValue();
+	}
+	
+	public static Integer getSilosInMap(MapLocation[] map){
+		Integer numSilos = 0;
+		for (MapLocation loc : map){
+			if (!loc.destroyed && loc.getClass().equals(Silo.class)){
+				numSilos++;
+			}
+		}
+		return numSilos;
 	}
 
 }
