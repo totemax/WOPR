@@ -34,11 +34,11 @@ public class Silo extends MapLocation {
 
 	private Integer missiles = 0; // Misiles del silo
 	
-	private double[] weights;
+	private float[] weights;
 
-	public Silo(Integer x, Integer y, double[] weights) {
+	public Silo(Integer x, Integer y, float[] player2Weights) {
 		super(SILO_POPULATION, x, y);
-		this.weights = weights;
+		this.weights = player2Weights;
 	}
 
 	public boolean getCharge(MapLocation[] rivalLocations) {
