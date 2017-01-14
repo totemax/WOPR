@@ -34,9 +34,9 @@ public class Silo extends MapLocation {
 
 	private Integer missiles = 0; // Misiles del silo
 
-	private double[] weights;
+	private float[] weights;
 
-	public Silo(Integer x, Integer y, double[] weights) {
+	public Silo(Integer x, Integer y, float[] weights) {
 		super(SILO_POPULATION, x, y);
 		this.weights = weights;
 	}
@@ -79,7 +79,7 @@ public class Silo extends MapLocation {
 	public void recharge() {
 		this.missiles++;
 	}
-	
+
 	public void dispararMisil(){
 		this.missiles--;
 	}

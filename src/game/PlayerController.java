@@ -34,15 +34,16 @@ import net.sourceforge.jFuzzyLogic.ruleConnectionMethod.RuleConnectionMethodOrMa
 public class PlayerController {
 
 	private MapLocation[] playerLocations; // Mapa del jugador
-	double[] weights;
+	float[] weights;
 	private GameController game;
 
 	/**
 	 * Constructor
 	 */
-	public PlayerController(double[] weights, MapLocation[] playerLocations, GameController game) {
+
+	public PlayerController(float[] genome, MapLocation[] playerLocations, GameController game) {
 		this.playerLocations = playerLocations;
-		this.weights = weights;
+		this.weights = genome;
 		this.game = game;
 	}
 
@@ -149,7 +150,7 @@ public class PlayerController {
 
 		Variable efectuarDisp = new Variable("efectuarDisp"); // si se efectua o
 																// no el disparo
-		
+
 		functionBlock.setVariable(bajoAtaque.getName(), bajoAtaque);
 		functionBlock.setVariable(miPoblacion.getName(), miPoblacion);
 		functionBlock.setVariable(poblacionObj.getName(), poblacionObj);

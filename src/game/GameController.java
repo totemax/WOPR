@@ -32,15 +32,15 @@ public class GameController {
 			+ (NUM_CITIES * City.CITY_POPULATION)
 			+ (((MAP_WIDTH * MAP_HEIGHT) - (NUM_SILOS + NUM_CITIES)) * Forest.FOREST_POPULATION);
 	public static final Integer MAX_MISSILE_PLAYER = NUM_SILOS * Silo.MAX_MISSILES;
-	
-	
+
+
 	private static final Integer PLAYER_WEIGHTS_QTY = 22;
 	private static final Integer SILO_WEIGHTS_QTY = 5;
 
 	PlayerController player1, player2;
 	HashMap<PlayerController, List<PlayerMovement>> movementList = new HashMap<>();
 
-	double[] player1Weights, player2Weights;
+	float[] player1Weights, player2Weights;
 
 	/**
 	 * Constructor.
@@ -48,13 +48,13 @@ public class GameController {
 	 * En este constructor se deberan incorporar los descriptores de cada
 	 * jugador.
 	 */
-	public GameController(double[] player1Weights, double[] player2Weights) {
-		this.player1Weights = player1Weights;
-		this.player2Weights = player2Weights;
+	public GameController(float[] genome, float[] genome2) {
+		this.player1Weights = genome;
+		this.player2Weights = genome2;
 		MapLocation[] player1Map = this.generateMap();
 		MapLocation[] player2Map = this.reflectMap(player1Map);
-		this.player1 = new PlayerController(player1Weights, player1Map, this);
-		this.player2 = new PlayerController(player2Weights, player2Map, this);
+		this.player1 = new PlayerController(genome, player1Map, this);
+		this.player2 = new PlayerController(genome2, player2Map, this);
 		movementList.put(player1, new ArrayList<>());
 		movementList.put(player2, new ArrayList<>());
 	}
@@ -124,7 +124,7 @@ public class GameController {
 	}
 
 	private MapLocation[] generateMap() {
-		Random rand = new Random();		
+		Random rand = new Random();
 		MapLocation[][] map = new MapLocation[MAP_WIDTH][MAP_HEIGHT];
 		for (int i = 0; i < NUM_SILOS; i++) {
 			int x = 0;
@@ -173,9 +173,9 @@ public class GameController {
 		}
 		return returnMap;
 	}
-	
-	private double[] getSiloWeights(double[] allWeights){
-		double[] siloWeights = new double[SILO_WEIGHTS_QTY];
+
+	private float[] getSiloWeights(double[] allWeights){
+		float[] siloWeights = new float[SILO_WEIGHTS_QTY];
 		System.arraycopy(allWeights, PLAYER_WEIGHTS_QTY, siloWeights, 0, SILO_WEIGHTS_QTY);
 		return siloWeights;
 	}
