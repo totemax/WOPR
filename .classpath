@@ -4,5 +4,13 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/jFuzzyLogic.jar"/>
 	<classpathentry kind="lib" path="lib/ecj.23.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-core-2.7-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-core-2.7-sources.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-core-2.7-tests.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-core-2.7.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-api-2.7-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-api-2.7-sources.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-api-2.7.jar"/>
+	<classpathentry kind="lib" path="lib/disruptor-3.3.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

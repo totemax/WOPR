@@ -1,6 +1,7 @@
 package game.entities;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import game.GameController;
@@ -40,8 +41,10 @@ public class Silo extends MapLocation {
 		super(SILO_POPULATION, x, y);
 		this.weights = weights;
 	}
+	
+	
 
-	public PlayerMovement getDisparo(MapLocation[] rivalLocations) {
+	public PlayerMovement getDisparo(MapLocation[] rivalLocations, List<PlayerMovement> selectedMovements) {
 		if (this.missiles == 0) {
 			return null;
 		}
@@ -49,6 +52,16 @@ public class Silo extends MapLocation {
 		// Lo hago aleatorio para probar
 		for (MapLocation loc : rivalLocations) {
 			if (!loc.destroyed) {
+				boolean alreadyShooted = false;
+				for (PlayerMovement mov : selectedMovements){
+					if(mov.getTo().equals(loc)){
+						alreadyShooted = true;
+						break;
+					}
+				}
+				if (alreadyShooted){
+					continue;
+				}
 				Double data = this.CBD(loc);
 				if (data != null) {
 					d.put(loc, data);

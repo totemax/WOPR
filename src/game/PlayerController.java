@@ -79,9 +79,7 @@ public class PlayerController {
 		for (MapLocation loc : this.playerLocations) {
 			if (loc.getClass().equals(Silo.class)) {
 				Silo siloLoc = (Silo) loc;
-				// Aqui deberá ir el controlador borroso que seleccionara
-				// quienes disparan
-				PlayerMovement mov = siloLoc.getDisparo(opponentLocations);
+				PlayerMovement mov = siloLoc.getDisparo(opponentLocations, movements);
 				if (mov != null) {
 					if (this.CBDJ(mov, MapLocation.getMapPopulation(opponentLocations),
 							Silo.getSilosInMap(opponentLocations))) {

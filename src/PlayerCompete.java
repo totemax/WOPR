@@ -5,7 +5,6 @@ import ec.*;
 import ec.coevolve.*;
 import ec.simple.SimpleFitness;
 import game.GameController;
-
 public class PlayerCompete extends Problem implements GroupedProblemForm {
 
 	public void preprocessPopulation(final EvolutionState state, Population pop, boolean[] updateFitness,
@@ -23,8 +22,8 @@ public class PlayerCompete extends Problem implements GroupedProblemForm {
 		if (ind.length != 2 || updateFitness.length != 2)
 			state.output.fatal("The InternalSumProblem evaluates only two individuals at a time.");
 
-		int score1 = 0;
-		int score2 = 0;
+		double score1 = 0;
+		double score2 = 0;
 
 		FloatVectorIndividual player1;
 		FloatVectorIndividual player2;
@@ -44,13 +43,13 @@ public class PlayerCompete extends Problem implements GroupedProblemForm {
 		// decimos al juego quien ha ganado
 		if (updateFitness[0]) {
 			SimpleFitness fit = ((SimpleFitness) (ind[0].fitness));
-			fit.trials.add(new Double(score1));
+			fit.trials.add(score1);
 			fit.setFitness(state, score1, false);
 		}
 
 		if (updateFitness[1]) {
 			SimpleFitness fit = ((SimpleFitness) (ind[1].fitness));
-			fit.trials.add(new Double(score2));
+			fit.trials.add(score2);
 			fit.setFitness(state, score2, false);
 		}
 
