@@ -22,7 +22,7 @@ exch 		= ec.simple.SimpleExchanger
 pop.subpops =				1
 pop.subpop.0 = 				ec.Subpopulation
 pop.subpop.0.size =			20
-pop.subpop.0.duplicate-retries =	10
+pop.subpop.0.duplicate-retries =	2
 
 pop.subpop.0.species.pipe.num-inds = 	2
 

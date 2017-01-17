@@ -5,6 +5,7 @@ import ec.*;
 import ec.coevolve.*;
 import ec.simple.SimpleFitness;
 import game.GameController;
+
 public class PlayerCompete extends Problem implements GroupedProblemForm {
 
 	public void preprocessPopulation(final EvolutionState state, Population pop, boolean[] updateFitness,
@@ -12,7 +13,7 @@ public class PlayerCompete extends Problem implements GroupedProblemForm {
 		for (int i = 0; i < pop.subpops.length; i++)
 			if (updateFitness[i])
 				for (int j = 0; j < pop.subpops[i].individuals.length; j++)
-					((SimpleFitness) (pop.subpops[i].individuals[j].fitness)).trials = new ArrayList();
+					((SimpleFitness) (pop.subpops[i].individuals[j].fitness)).trials = new ArrayList<Double>();
 
 	}
 
@@ -36,9 +37,9 @@ public class PlayerCompete extends Problem implements GroupedProblemForm {
 		PlayerFitness.startGame();
 
 		score1 = PlayerFitness.player1Result();
-		//System.out.println("Score1:" + score1);
+		// System.out.println("Score1:" + score1);
 		score2 = PlayerFitness.player2Result();
-		//System.out.println("Score2:" + score2);
+		// System.out.println("Score2:" + score2);
 
 		// decimos al juego quien ha ganado
 		if (updateFitness[0]) {
@@ -53,26 +54,27 @@ public class PlayerCompete extends Problem implements GroupedProblemForm {
 			fit.setFitness(state, score2, false);
 		}
 
-		//System.out.println("Generacion: " + state.generation);
-		//System.out.println("Trial Fitness updated");
+		// System.out.println("Generacion: " + state.generation);
+		// System.out.println("Trial Fitness updated");
 
 	}
 
 	public void postprocessPopulation(final EvolutionState state, Population pop, boolean[] updateFitness,
 			boolean countVictoriesOnly) {
-
 		for (int i = 0; i < pop.subpops.length; i++)
 			if (updateFitness[i])
 				for (int j = 0; j < pop.subpops[i].individuals.length; j++) {
 					SimpleFitness fit = ((SimpleFitness) (pop.subpops[i].individuals[j].fitness));
 
-					// calculamos el valor maximo
-					double max = Double.NEGATIVE_INFINITY;
+					// average of the trials we got
 					int len = fit.trials.size();
+					double sum = 0;
 					for (int l = 0; l < len; l++)
-						max = Math.max(((Double) (fit.trials.get(l))).doubleValue(), max);
+						sum += ((Double) (fit.trials.get(l))).doubleValue();
+					sum /= len;
 
-					fit.setFitness(state, max, true);
+					// we'll not bother declaring the ideal
+					fit.setFitness(state, sum, false);
 					pop.subpops[i].individuals[j].evaluated = true;
 				}
 	}
