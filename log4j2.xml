@@ -9,6 +9,14 @@
 				</pattern>
 			</PatternLayout>
 		</RandomAccessFile>
+		<RandomAccessFile name="avgData" fileName="avgData.csv"
+			immediateFlush="false" append="false">
+			<PatternLayout>
+				<pattern>
+					%msg%n
+				</pattern>
+			</PatternLayout>
+		</RandomAccessFile>
 		<Console name="Console" target="SYSTEM_OUT">
 			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
 		</Console>
@@ -17,6 +25,10 @@
 		<AsyncLogger name="game.GameController" level="debug"
 			additivity="false">
 			<AppenderRef ref="RandomAccessFile" />
+		</AsyncLogger>
+		<AsyncLogger name="AverageLogger" level="debug"
+			additivity="false">
+			<AppenderRef ref="avgData" />
 		</AsyncLogger>
 		<Root level="info">
 			<AppenderRef ref="Console" />

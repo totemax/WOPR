@@ -16,11 +16,7 @@
 
 
 Threads:  breed/1 eval/1
-Seed: -1377282577 
+Seed: -1374429103 
 Job: 0
 Setting up
 Initializing Generation 0
-FATAL ERROR:
-FloatVectorSpecies given a bad mutation type: flip
-PARAMETER: pop.subpop.0.species.mutation-type
-     ALSO: vector.species.mutation-type

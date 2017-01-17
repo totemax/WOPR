@@ -1,12 +1,17 @@
 
 import ec.vector.*;
 import java.util.ArrayList;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import ec.*;
 import ec.coevolve.*;
 import ec.simple.SimpleFitness;
 import game.GameController;
 
 public class PlayerCompete extends Problem implements GroupedProblemForm {
+	private static final Logger logger = LogManager.getLogger("AverageLogger");
 
 	public void preprocessPopulation(final EvolutionState state, Population pop, boolean[] updateFitness,
 			boolean countVictoriesOnly) {
@@ -61,21 +66,28 @@ public class PlayerCompete extends Problem implements GroupedProblemForm {
 
 	public void postprocessPopulation(final EvolutionState state, Population pop, boolean[] updateFitness,
 			boolean countVictoriesOnly) {
-		for (int i = 0; i < pop.subpops.length; i++)
+		for (int i = 0; i < pop.subpops.length; i++) {
+			int popSum = 0;
+			int popLen = 0;
 			if (updateFitness[i])
 				for (int j = 0; j < pop.subpops[i].individuals.length; j++) {
 					SimpleFitness fit = ((SimpleFitness) (pop.subpops[i].individuals[j].fitness));
 
 					// average of the trials we got
 					int len = fit.trials.size();
+					popLen += fit.trials.size();
 					double sum = 0;
-					for (int l = 0; l < len; l++)
+					for (int l = 0; l < len; l++) {
 						sum += ((Double) (fit.trials.get(l))).doubleValue();
+						popSum += ((Double) (fit.trials.get(l))).doubleValue();
+					}
 					sum /= len;
 
 					// we'll not bother declaring the ideal
 					fit.setFitness(state, sum, false);
 					pop.subpops[i].individuals[j].evaluated = true;
 				}
+			logger.debug("{},{}", state.generation, (popSum/popLen));
+		}
 	}
 }

@@ -16,7 +16,7 @@ import game.entities.Silo;
 
 public class GameController {
 
-	private static final Integer NUM_ROUNDS = 5; // Numero de turnos por
+	private static final Integer NUM_ROUNDS = 10; // Numero de turnos por
 													// partida.
 	public static final Integer NUM_SILOS = 6; // Numero de silos por jugador.
 	public static final Integer NUM_CITIES = 6; // Numero de ciudades por
