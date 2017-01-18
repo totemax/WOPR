@@ -18,6 +18,9 @@ eval 		= ec.coevolve.CompetitiveEvaluator
 stat		= ec.simple.SimpleStatistics
 exch 		= ec.simple.SimpleExchanger
 
+breed.elite.0 = 1
+# esta linea se usa para re-evaluar el fitness del elite cada generacion
+#breed.reevaluate-elites.0 = true 
 
 pop.subpops =				1
 pop.subpop.0 = 				ec.Subpopulation
@@ -47,6 +50,7 @@ select.tournament.size		= 2
 eval.style = round-robin
 
 eval.problem = PlayerCompete
+#eval.subpop.0.num-elites = 2
 
 stat.file	$out.stat
 
