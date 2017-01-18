@@ -12,6 +12,7 @@ import game.GameController;
 
 public class PlayerCompete extends Problem implements GroupedProblemForm {
 	private static final Logger logger = LogManager.getLogger("AverageLogger");
+	private static final Logger logger2 = LogManager.getLogger(GameController.class);
 
 	public void preprocessPopulation(final EvolutionState state, Population pop, boolean[] updateFitness,
 			boolean countVictoriesOnly) {
@@ -51,12 +52,14 @@ public class PlayerCompete extends Problem implements GroupedProblemForm {
 			SimpleFitness fit = ((SimpleFitness) (ind[0].fitness));
 			fit.trials.add(score1);
 			fit.setFitness(state, score1, false);
+			//logger2.debug("Establecido fitness de jugador 1: {}", score1);
 		}
 
 		if (updateFitness[1]) {
 			SimpleFitness fit = ((SimpleFitness) (ind[1].fitness));
 			fit.trials.add(score2);
 			fit.setFitness(state, score2, false);
+			//logger2.debug("Establecido fitness de jugador 2: {}", score2);
 		}
 
 		// System.out.println("Generacion: " + state.generation);
@@ -69,6 +72,7 @@ public class PlayerCompete extends Problem implements GroupedProblemForm {
 		for (int i = 0; i < pop.subpops.length; i++) {
 			int popSum = 0;
 			int popLen = 0;
+			double subpop_max = Double.NEGATIVE_INFINITY;
 			if (updateFitness[i])
 				for (int j = 0; j < pop.subpops[i].individuals.length; j++) {
 					SimpleFitness fit = ((SimpleFitness) (pop.subpops[i].individuals[j].fitness));
@@ -85,9 +89,10 @@ public class PlayerCompete extends Problem implements GroupedProblemForm {
 
 					// we'll not bother declaring the ideal
 					fit.setFitness(state, sum, false);
+					subpop_max = Math.max(subpop_max, sum);
 					pop.subpops[i].individuals[j].evaluated = true;
 				}
-			logger.debug("{},{}", state.generation, (popSum/popLen));
+			logger.debug("{},{}, {}", state.generation, (double)(popSum/popLen), subpop_max);
 		}
 	}
 }

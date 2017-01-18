@@ -61,7 +61,7 @@ public class GameController {
 	 * jugador.
 	 */
 	public GameController(float[] genome, float[] genome2) {
-		logger.debug("Comienza partida");
+		//logger.debug("Comienza partida");
 		this.player1Weights = genome;
 		this.player2Weights = genome2;
 		MapLocation[] player1Map = this.generateMap();
@@ -100,10 +100,10 @@ public class GameController {
 		Random rand = new Random();
 		for (PlayerMovement mov : movs) {
 			double failProb = this.getFailProb(mov.getFrom(), mov.getTo());
-			logger.debug("Ataque a posición con poblacion {}, failprob: {}, distance {}", mov.getTo().getPopulation(), failProb, mov.getFrom().distance(mov.getTo()));
+			//logger.debug("Ataque a posición con poblacion {}, failprob: {}, distance {}", mov.getTo().getPopulation(), failProb, mov.getFrom().distance(mov.getTo()));
 			double num = rand.nextInt(100);
 			if (num > failProb) {
-				logger.debug("Ataque acertado");
+				//logger.debug("Ataque acertado");
 				mov.getTo().destroyLocation();
 			}
 		}
@@ -122,7 +122,7 @@ public class GameController {
 		totalScore += this.player1.getNumMissiles() * MISSILE_WEIGHT;
 		totalScore += this.player1.getNumSilos() * SILOS_WEIGHT;
 		totalScore += this.player1.getNumCities() * CITIES_WEIGHT;
-		totalScore += (GameController.MAX_POPULATION_PLAYER - this.player2.getPopulation()) * POPULATION_WEIGHT;
+		totalScore += (GameController.MAX_POPULATION_PLAYER - this.player2.getPopulation()) * POPULATION_WEIGHT * 10;
 		totalScore += (GameController.NUM_SILOS - this.player2.getNumSilos()) * SILOS_WEIGHT;
 		return totalScore;
 	}
@@ -133,7 +133,7 @@ public class GameController {
 		totalScore += this.player2.getNumMissiles() * MISSILE_WEIGHT;
 		totalScore += this.player2.getNumSilos() * SILOS_WEIGHT;
 		totalScore += this.player2.getNumCities() * CITIES_WEIGHT;
-		totalScore += (GameController.MAX_POPULATION_PLAYER - this.player1.getPopulation()) * POPULATION_WEIGHT;
+		totalScore += (GameController.MAX_POPULATION_PLAYER - this.player1.getPopulation()) * POPULATION_WEIGHT * 10;
 		totalScore += (GameController.NUM_SILOS - this.player1.getNumSilos()) * SILOS_WEIGHT;
 		return totalScore;
 	}
