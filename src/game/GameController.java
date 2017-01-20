@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import game.entities.City;
 import game.entities.Forest;
 import game.entities.MapLocation;
@@ -13,29 +16,38 @@ import game.entities.Silo;
 
 public class GameController {
 
-	private static final Integer NUM_ROUNDS = 6; // Numero de turnos por
+	private static final Integer NUM_ROUNDS = 10; // Numero de turnos por
 													// partida.
 	public static final Integer NUM_SILOS = 6; // Numero de silos por jugador.
 	public static final Integer NUM_CITIES = 6; // Numero de ciudades por
 												// jugador.
-	public static final Integer MAP_WIDTH = 6; // Ancho del mapa por cada
+	public static final Integer MAP_WIDTH = 12; // Ancho del mapa por cada
 												// jugador.
-	public static final Integer MAP_HEIGHT = 6; // Altura del mapa por cada
-												// jugador.
+	public static final Integer MAP_HEIGHT = 12; // Altura del mapa por cada
+													// jugador.
 
 	public static final double MAX_DISTANCE = Math.sqrt(Math.pow((MAP_WIDTH * 2), 2) + Math.pow((MAP_HEIGHT * 2), 2));
 
 	private static final Integer MISSILE_PER_ROUND = 3;
-	private static final double FAIL_MOD = 5;
-	private static final Integer MAX_FAIL_PROB = 60;
+	private static final double FAIL_MOD = 0.1;
+	private static final Integer MAX_FAIL_PROB = 20;
 	public static final Integer MAX_POPULATION_PLAYER = (NUM_SILOS * Silo.SILO_POPULATION)
 			+ (NUM_CITIES * City.CITY_POPULATION)
 			+ (((MAP_WIDTH * MAP_HEIGHT) - (NUM_SILOS + NUM_CITIES)) * Forest.FOREST_POPULATION);
 	public static final Integer MAX_MISSILE_PLAYER = NUM_SILOS * Silo.MAX_MISSILES;
 
-
 	private static final Integer PLAYER_WEIGHTS_QTY = 22;
 	private static final Integer SILO_WEIGHTS_QTY = 5;
+
+	/**
+	 * Score weights
+	 */
+	private static final double POPULATION_WEIGHT = 0.01;
+	private static final double MISSILE_WEIGHT = 10;
+	private static final double SILOS_WEIGHT = 100;
+	private static final double CITIES_WEIGHT = 100;
+	
+	private static final Logger logger = LogManager.getLogger(GameController.class);
 
 	PlayerController player1, player2;
 	HashMap<PlayerController, List<PlayerMovement>> movementList = new HashMap<>();
@@ -49,6 +61,7 @@ public class GameController {
 	 * jugador.
 	 */
 	public GameController(float[] genome, float[] genome2) {
+		//logger.debug("Comienza partida");
 		this.player1Weights = genome;
 		this.player2Weights = genome2;
 		MapLocation[] player1Map = this.generateMap();
@@ -87,8 +100,10 @@ public class GameController {
 		Random rand = new Random();
 		for (PlayerMovement mov : movs) {
 			double failProb = this.getFailProb(mov.getFrom(), mov.getTo());
+			//logger.debug("Ataque a posición con poblacion {}, failprob: {}, distance {}", mov.getTo().getPopulation(), failProb, mov.getFrom().distance(mov.getTo()));
 			double num = rand.nextInt(100);
 			if (num > failProb) {
+				//logger.debug("Ataque acertado");
 				mov.getTo().destroyLocation();
 			}
 		}
@@ -101,25 +116,25 @@ public class GameController {
 	 * @return Integer (por poner algo) en un futuro se podra poner una relacion
 	 *         descriptor - puntuacion
 	 */
-	public Integer player1Result() {
-		Integer totalScore = 0;
-		totalScore += this.player1.getPopulation() / 100;
-		totalScore += this.player1.getNumMissiles()*10;
-		totalScore += this.player1.getNumSilos()*100;
-		totalScore += this.player1.getNumCities()*100;
-		totalScore += (GameController.MAX_POPULATION_PLAYER - this.player2.getPopulation()) / 100;
-		totalScore += (GameController.NUM_SILOS - this.player2.getNumSilos()) * 100;
+	public double player1Result() {
+		Double totalScore = (double) 0;
+		totalScore += this.player1.getPopulation() * POPULATION_WEIGHT;
+		totalScore += this.player1.getNumMissiles() * MISSILE_WEIGHT;
+		totalScore += this.player1.getNumSilos() * SILOS_WEIGHT;
+		totalScore += this.player1.getNumCities() * CITIES_WEIGHT;
+		totalScore += (GameController.MAX_POPULATION_PLAYER - this.player2.getPopulation()) * POPULATION_WEIGHT * 10;
+		totalScore += (GameController.NUM_SILOS - this.player2.getNumSilos()) * SILOS_WEIGHT;
 		return totalScore;
 	}
 
-	public Integer player2Result() {
-		Integer totalScore = 0;
-		totalScore += this.player2.getPopulation() / 100;
-		totalScore += this.player2.getNumMissiles()*10;
-		totalScore += this.player2.getNumSilos()*100;
-		totalScore += this.player2.getNumCities()*100;
-		totalScore += (GameController.MAX_POPULATION_PLAYER - this.player1.getPopulation()) / 100;
-		totalScore += (GameController.NUM_SILOS - this.player1.getNumSilos()) * 100;
+	public double player2Result() {
+		Double totalScore = (double) 0;
+		totalScore += this.player2.getPopulation() * POPULATION_WEIGHT;
+		totalScore += this.player2.getNumMissiles() * MISSILE_WEIGHT;
+		totalScore += this.player2.getNumSilos() * SILOS_WEIGHT;
+		totalScore += this.player2.getNumCities() * CITIES_WEIGHT;
+		totalScore += (GameController.MAX_POPULATION_PLAYER - this.player1.getPopulation()) * POPULATION_WEIGHT * 10;
+		totalScore += (GameController.NUM_SILOS - this.player1.getNumSilos()) * SILOS_WEIGHT;
 		return totalScore;
 	}
 
@@ -164,7 +179,8 @@ public class GameController {
 		MapLocation[] returnMap = new MapLocation[map.length];
 		for (int i = 0; i < map.length; i++) {
 			if (map[i].getClass().equals(Silo.class)) {
-				returnMap[i] = new Silo((MAP_WIDTH * 2) - map[i].getX(), map[i].getY(), this.getSiloWeights(this.player2Weights));
+				returnMap[i] = new Silo((MAP_WIDTH * 2) - map[i].getX(), map[i].getY(),
+						this.getSiloWeights(this.player2Weights));
 			} else if (map[i].getClass().equals(City.class)) {
 				returnMap[i] = new City((MAP_WIDTH * 2) - map[i].getX(), map[i].getY());
 			} else {
@@ -174,7 +190,7 @@ public class GameController {
 		return returnMap;
 	}
 
-	private float[] getSiloWeights(float[] allWeights){
+	private float[] getSiloWeights(float[] allWeights) {
 		float[] siloWeights = new float[SILO_WEIGHTS_QTY];
 		System.arraycopy(allWeights, PLAYER_WEIGHTS_QTY, siloWeights, 0, SILO_WEIGHTS_QTY);
 		return siloWeights;
