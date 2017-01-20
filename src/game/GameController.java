@@ -29,8 +29,8 @@ public class GameController {
 	public static final double MAX_DISTANCE = Math.sqrt(Math.pow((MAP_WIDTH * 2), 2) + Math.pow((MAP_HEIGHT * 2), 2));
 
 	private static final Integer MISSILE_PER_ROUND = 3;
-	private static final double FAIL_MOD = 0.5;
-	private static final Integer MAX_FAIL_PROB = 60;
+	private static final double FAIL_MOD = 0.1;
+	private static final Integer MAX_FAIL_PROB = 20;
 	public static final Integer MAX_POPULATION_PLAYER = (NUM_SILOS * Silo.SILO_POPULATION)
 			+ (NUM_CITIES * City.CITY_POPULATION)
 			+ (((MAP_WIDTH * MAP_HEIGHT) - (NUM_SILOS + NUM_CITIES)) * Forest.FOREST_POPULATION);

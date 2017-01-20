@@ -70,8 +70,7 @@ public class PlayerCompete extends Problem implements GroupedProblemForm {
 	public void postprocessPopulation(final EvolutionState state, Population pop, boolean[] updateFitness,
 			boolean countVictoriesOnly) {
 		for (int i = 0; i < pop.subpops.length; i++) {
-			int popSum = 0;
-			int popLen = 0;
+			double popSum = 0;
 			double subpop_max = Double.NEGATIVE_INFINITY;
 			if (updateFitness[i])
 				for (int j = 0; j < pop.subpops[i].individuals.length; j++) {
@@ -79,20 +78,19 @@ public class PlayerCompete extends Problem implements GroupedProblemForm {
 
 					// average of the trials we got
 					int len = fit.trials.size();
-					popLen += fit.trials.size();
 					double sum = 0;
 					for (int l = 0; l < len; l++) {
 						sum += ((Double) (fit.trials.get(l))).doubleValue();
-						popSum += ((Double) (fit.trials.get(l))).doubleValue();
 					}
 					sum /= len;
-
+					popSum += sum;
 					// we'll not bother declaring the ideal
 					fit.setFitness(state, sum, false);
 					subpop_max = Math.max(subpop_max, sum);
 					pop.subpops[i].individuals[j].evaluated = true;
 				}
-			logger.debug("{},{}, {}", state.generation, (double)(popSum/popLen), subpop_max);
+			popSum /= pop.subpops[i].individuals.length;
+			logger.debug("{},{}, {}", state.generation, popSum, subpop_max);
 		}
 	}
 }

@@ -1,7 +1,14 @@
 
-breedthreads= 1
-evalthreads	= 1
+breedthreads= 4
+evalthreads	= 8
 seed.0		= time
+seed.1		= time
+seed.2		= time
+seed.3		= time
+seed.4		= time
+seed.5		= time
+seed.6		= time
+seed.7		= time
 
 generations =	1000
 quit-on-run-complete =	true
@@ -18,7 +25,7 @@ eval 		= ec.coevolve.CompetitiveEvaluator
 stat		= ec.simple.SimpleStatistics
 exch 		= ec.simple.SimpleExchanger
 
-breed.elite.0 = 1
+breed.elite.0 = 2
 # esta linea se usa para re-evaluar el fitness del elite cada generacion
 #breed.reevaluate-elites.0 = true 
 
